@@ -9,6 +9,32 @@
   font-family: Inter, sans-serif;
 }
 
+.winner-banner {
+  font-size: 32px;
+  margin-top: 20px;
+  margin-bottom: 40px;
+  color: #4da3ff;
+}
+
+.reset-btn {
+  margin-top: 20px;
+  padding: 12px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  background: #4da3ff;
+  color: #111;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.reset-btn:hover {
+  background: #6bb6ff;
+}
+
+
+
 /* --- Plateau 9x9 --- */
 .board {
   display: grid;
