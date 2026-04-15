@@ -1,0 +1,16 @@
+npm create vite@latest frontend --template react
+    - Choisir framework react
+    - Choisir variant TypeScript
+
+npm install react-router-dom
+
+npm install axios zustand
+
+
+# Lancer le serveur frontend
+npm run dev
+
+
+
+#Lancer le backend Spring Boot
+mvn spring-boot:run
