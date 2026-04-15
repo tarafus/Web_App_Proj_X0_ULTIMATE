@@ -1,39 +1,33 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { authApi } from "../api/authApi";
-import { useAuthStore } from "../store/authStore";
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/auth.css";
 
 export default function Login() {
   const navigate = useNavigate();
-  const loginStore = useAuthStore();
 
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
-  async function handleLogin(e: React.FormEvent) {
+  function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
 
-    try {
-      const res = await authApi.login({ username, password });
-      loginStore.login(res.data.token, res.data.user);
+    // MOCK pour l'instant
+    if (email && password) {
       navigate("/");
-    } catch (err) {
-      setError("Identifiants incorrects");
     }
   }
 
   return (
-    <div>
+    <div className="auth-container">
       <h1>Connexion</h1>
 
-      <form onSubmit={handleLogin}>
+      <form className="auth-form" onSubmit={handleLogin}>
         <input
-          type="text"
-          placeholder="Nom d'utilisateur"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          placeholder="Adresse email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
         />
 
         <input
@@ -41,12 +35,17 @@ export default function Login() {
           placeholder="Mot de passe"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
-
-        <button type="submit">Se connecter</button>
+        <button className="btn-primary" type="submit">
+          Se connecter
+        </button>
       </form>
+
+      <p className="auth-switch">
+        Pas encore de compte ? <Link to="/register">Créer un compte</Link>
+      </p>
     </div>
   );
 }

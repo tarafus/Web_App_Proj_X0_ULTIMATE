@@ -1,0 +1,122 @@
+
+
+.home-container {
+    font-family: Inter, sans-serif;
+    color: #e5e5e5;
+    padding-bottom: 80px;
+}
+
+/* HERO */
+.hero {
+    text-align: center;
+    padding: 120px 20px 80px;
+    background: linear-gradient(135deg, #1a1a1a, #111);
+}
+
+.hero-title {
+    font-size: 64px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.hero-subtitle {
+    font-size: 20px;
+    opacity: 0.8;
+    max-width: 600px;
+    margin: 30px auto 32px;
+}
+
+.hero-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.btn-primary {
+    padding: 12px 28px;
+    font-size: 18px;
+    border-radius: 8px;
+    border: none;
+    background: #4da3ff;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-primary:hover {
+    background: #6bb4ff;
+}
+
+.btn-secondary {
+    padding: 12px 28px;
+    font-size: 18px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    background: transparent;
+    color: #e5e5e5;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #2a2a2a;
+}
+
+/* FEATURES */
+.features {
+    padding: 80px 20px;
+    text-align: center;
+}
+
+.features h2 {
+    font-size: 36px;
+    margin-bottom: 40px;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    background: #1c1c1c;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    transition: 0.2s;
+}
+
+.feature-card:hover {
+    border-color: #4da3ff;
+    transform: translateY(-4px);
+}
+
+/* TECHNOLOGIES */
+.technos {
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.technos h2 {
+    font-size: 32px;
+    margin-bottom: 24px;
+}
+
+.tech-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.tech-badges span {
+    padding: 8px 16px;
+    background: #222;
+    border-radius: 6px;
+    border: 1px solid #333;
+    font-size: 14px;
+    opacity: 0.9;
+}

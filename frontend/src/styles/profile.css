@@ -1,0 +1,81 @@
+.profile-container {
+    max-width: 900px;
+    margin: 80px auto;
+    padding: 20px;
+    color: #e5e5e5;
+    font-family: Inter, sans-serif;
+}
+
+.profile-container h1 {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 40px;
+}
+
+.profile-card {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.profile-card h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.elo {
+    font-size: 20px;
+    opacity: 0.8;
+    margin-bottom: 24px;
+}
+
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+}
+
+.stat-number {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.stat-label {
+    display: block;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+.history-title {
+    font-size: 28px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #1c1c1c;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.history-table th {
+    background: #222;
+    padding: 16px;
+    font-size: 16px;
+    border-bottom: 1px solid #333;
+}
+
+.history-table td {
+    padding: 14px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.history-table tr:hover {
+    background: #2a2a2a;
+}

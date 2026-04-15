@@ -1,0 +1,40 @@
+.leaderboard-container {
+    max-width: 900px;
+    margin: 80px auto;
+    padding: 20px;
+    text-align: center;
+    color: #e5e5e5;
+    font-family: Inter, sans-serif;
+}
+
+.leaderboard-container h1 {
+    font-size: 36px;
+    margin-bottom: 40px;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #1c1c1c;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.leaderboard-table th {
+    background: #222;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid #333;
+}
+
+.leaderboard-table td {
+    padding: 14px;
+    border-bottom: 1px solid #2a2a2a;
+    font-size: 15px;
+}
+
+.leaderboard-table tr:hover {
+    background: #2a2a2a;
+}

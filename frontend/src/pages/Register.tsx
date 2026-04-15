@@ -1,39 +1,42 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { authApi } from "../api/authApi";
-import { useAuthStore } from "../store/authStore";
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/auth.css";
 
 export default function Register() {
   const navigate = useNavigate();
-  const loginStore = useAuthStore();
 
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
-  async function handleRegister(e: React.FormEvent) {
+  function handleRegister(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
 
-    try {
-      const res = await authApi.register({ username, password });
-      loginStore.login(res.data.token, res.data.user);
-      navigate("/");
-    } catch (err) {
-      setError("Nom d'utilisateur déjà pris");
+    // MOCK pour l'instant
+    if (username && email && password) {
+      navigate("/login");
     }
   }
 
   return (
-    <div>
+    <div className="auth-container">
       <h1>Créer un compte</h1>
 
-      <form onSubmit={handleRegister}>
+      <form className="auth-form" onSubmit={handleRegister}>
         <input
           type="text"
           placeholder="Nom d'utilisateur"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+
+        <input
+          type="email"
+          placeholder="Adresse email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
         />
 
         <input
@@ -41,12 +44,17 @@ export default function Register() {
           placeholder="Mot de passe"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
-
-        <button type="submit">S'inscrire</button>
+        <button className="btn-primary" type="submit">
+          S'inscrire
+        </button>
       </form>
+
+      <p className="auth-switch">
+        Déjà un compte ? <Link to="/login">Se connecter</Link>
+      </p>
     </div>
   );
 }
