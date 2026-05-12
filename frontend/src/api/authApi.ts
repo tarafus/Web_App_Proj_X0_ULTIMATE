@@ -1,12 +1,4 @@
-import { api } from "./api";
-
-export interface AuthResponse {
-  token: string;
-  user: {
-    id: number;
-    username: string;
-  };
-}
+import { api } from "./api.ts";
 
 export interface LoginRequest {
   username: string;
@@ -20,8 +12,15 @@ export interface RegisterRequest {
 
 export const authApi = {
   register: (data: RegisterRequest) =>
-    api.post<AuthResponse>("/auth/register", data),
+    api.post<string>(`/auth/register?username=${data.username}&password=${data.password}`),
 
   login: (data: LoginRequest) =>
-    api.post<AuthResponse>("/auth/login", data),
+    api.post<string>(`/auth/login?username=${data.username}&password=${data.password}`),
+
+  me: (token: string) =>
+    api.get("/auth/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
 };

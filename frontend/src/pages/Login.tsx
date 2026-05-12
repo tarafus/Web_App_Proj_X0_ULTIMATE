@@ -1,19 +1,38 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
+import { authApi } from "../api/authApi.ts";
+import { useAuthStore } from "../store/authStore.ts";
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
 
-    // MOCK pour l'instant
-    if (email && password) {
+    try {
+      // 1) Login → récupère le token
+      const response = await authApi.login({ username, password });
+      const token = response.data;
+
+      // 2) Stocker le token immédiatement
+      useAuthStore.getState().login(token, null);
+
+      // 3) Appeler /auth/me AVEC le token
+      const userResponse = await authApi.me(token);
+      const user = userResponse.data;
+
+      // 4) Stocker le user
+      useAuthStore.getState().login(token, user);
+
+      // 5) Redirection
       navigate("/");
+    } catch (err) {
+      console.error("Erreur login:", err);
+      alert("Identifiants invalides");
     }
   }
 
@@ -23,10 +42,10 @@ export default function Login() {
 
       <form className="auth-form" onSubmit={handleLogin}>
         <input
-          type="email"
-          placeholder="Adresse email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          placeholder="Nom d'utilisateur"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           required
         />
 

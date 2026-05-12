@@ -1,18 +1,11 @@
+import { useAuthStore } from "../store/authStore.ts";
 import "../styles/profile.css";
 
 export default function Profile() {
-    // MOCK temporaire
-    const user = {
-        username: "Yui",
-        elo: 1520,
-        wins: 32,
-        losses: 10,
-        games: [
-            { id: 1, opponent: "Alex", result: "Victoire", eloChange: "+12" },
-            { id: 2, opponent: "Sam", result: "Défaite", eloChange: "-8" },
-            { id: 3, opponent: "Lina", result: "Victoire", eloChange: "+10" },
-        ],
-    };
+    const user = useAuthStore((s) => s.user);
+
+    // Sécurité (normalement inutile grâce à ProtectedRoute)
+    if (!user) return null;
 
     return (
         <div className="profile-container">
@@ -47,14 +40,13 @@ export default function Profile() {
                 </thead>
 
                 <tbody>
-                    {user.games.map((g) => (
-                        <tr key={g.id}>
-                            <td>{g.id}</td>
-                            <td>{g.opponent}</td>
-                            <td>{g.result}</td>
-                            <td>{g.eloChange}</td>
-                        </tr>
-                    ))}
+                    {/* En attendant la vraie table games */}
+                    <tr>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
                 </tbody>
             </table>
         </div>

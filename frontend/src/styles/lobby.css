@@ -1,76 +1,79 @@
 .lobby-container {
-    max-width: 900px;
-    margin: 80px auto;
-    padding: 20px;
-    color: #e5e5e5;
-    font-family: Inter, sans-serif;
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 20px;
+  color: #e5e5e5;
+  font-family: Inter, sans-serif;
 }
 
 .lobby-container h1 {
-    text-align: center;
-    font-size: 36px;
-    margin-bottom: 40px;
+  text-align: center;
+  font-size: 36px;
+  margin-bottom: 40px;
 }
 
 .lobby-sections {
-    display: flex;
-    gap: 40px;
-    justify-content: center;
-    flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
 }
 
+/* Cartes */
 .lobby-card {
-    background: #1c1c1c;
-    border: 1px solid #333;
-    border-radius: 12px;
-    padding: 24px;
-    width: 380px;
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
 }
 
 .lobby-card h2 {
-    font-size: 24px;
-    margin-bottom: 20px;
+  font-size: 22px;
+  margin-bottom: 16px;
+  color: #4da3ff;
 }
 
+/* Listes */
 .lobby-card ul {
-    list-style: none;
-    padding: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .lobby-card li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #2a2a2a;
+  background: #222;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.invite-btn,
-.accept-btn,
-.decline-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
+/* Boutons */
+.lobby-card button {
+  background: #4da3ff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #111;
+  transition: 0.2s;
 }
 
-.invite-btn {
-    background: #4da3ff;
-    color: #111;
-}
-
-.accept-btn {
-    background: #4dff8c;
-    color: #111;
-}
-
-.decline-btn {
-    background: #ff4d4d;
-    color: #111;
+.lobby-card button:hover {
+  background: #6bb6ff;
 }
 
 .inv-buttons {
-    display: flex;
-    gap: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.inv-buttons button:nth-child(2) {
+  background: #ff6b6b;
+}
+
+.inv-buttons button:nth-child(2):hover {
+  background: #ff8585;
 }

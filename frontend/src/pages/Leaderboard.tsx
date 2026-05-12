@@ -1,13 +1,46 @@
+import { useEffect, useState } from "react";
+import { useAuthStore } from "../store/authStore.ts";
 import "../styles/leaderboard.css";
 
+interface Player {
+    id: number;
+    username: string;
+    elo: number;
+    wins: number;
+    losses: number;
+    rank?: number;
+}
+
 export default function Leaderboard() {
-    // MOCK temporaire
-    const players = [
-        { rank: 1, username: "Yui", elo: 1520, wins: 32, losses: 10 },
-        { rank: 2, username: "Alex", elo: 1480, wins: 28, losses: 14 },
-        { rank: 3, username: "Sam", elo: 1420, wins: 20, losses: 18 },
-        { rank: 4, username: "Lina", elo: 1390, wins: 18, losses: 20 },
-    ];
+    const [players, setPlayers] = useState<Player[]>([]);
+    const token = useAuthStore((s) => s.token);
+
+    useEffect(() => {
+        if (!token) return;
+
+        fetch("http://localhost:8080/auth/all", {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Forbidden");
+                return res.json();
+            })
+            .then((data: Player[]) => {
+                const sorted = data.sort((a, b) => b.elo - a.elo);
+
+                const ranked = sorted.map((p, index) => ({
+                    ...p,
+                    rank: index + 1,
+                }));
+
+                setPlayers(ranked);
+            })
+            .catch(() => {
+                console.error("Impossible de charger le leaderboard");
+            });
+    }, [token]);
 
     return (
         <div className="leaderboard-container">
@@ -26,7 +59,7 @@ export default function Leaderboard() {
 
                 <tbody>
                     {players.map((p) => (
-                        <tr key={p.rank}>
+                        <tr key={p.id}>
                             <td>{p.rank}</td>
                             <td>{p.username}</td>
                             <td>{p.elo}</td>

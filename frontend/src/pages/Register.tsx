@@ -1,20 +1,42 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
+import { authApi } from "../api/authApi.ts";
+import { useAuthStore } from "../store/authStore.ts";
 
 export default function Register() {
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  function handleRegister(e: React.FormEvent) {
+  async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
 
-    // MOCK pour l'instant
-    if (username && email && password) {
-      navigate("/login");
+    try {
+      // 1) Register → récupère le token
+      const response = await authApi.register({ username, password });
+      const token = response.data;
+
+      // 2) Stocker le token immédiatement
+      useAuthStore.getState().login(token, null);
+
+      // 3) Appeler /auth/me AVEC le token
+      const userResponse = await authApi.me(token);
+      const user = userResponse.data;
+
+      // 4) Stocker le user
+      useAuthStore.getState().login(token, user);
+
+      navigate("/");
+    } catch (err: any) {
+      console.error("Erreur register:", err);
+      if (err.response?.status === 400) {
+        // Le backend renvoie "Username already taken"
+        alert(err.response.data);
+      } else {
+        alert("Erreur lors de l'inscription");
+      }
     }
   }
 
@@ -28,14 +50,6 @@ export default function Register() {
           placeholder="Nom d'utilisateur"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-
-        <input
-          type="email"
-          placeholder="Adresse email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
           required
         />
 

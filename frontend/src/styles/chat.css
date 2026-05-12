@@ -1,0 +1,83 @@
+.chat-container {
+  background: #1a1a1a;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
+
+/* Zone scrollable */
+.chat-messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Messages moitié-moitié */
+.chat-msg {
+  max-width: 50%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.3;
+  word-wrap: break-word;
+}
+
+/* Message de l'adversaire (gauche) */
+.chat-msg.opponent {
+  background: #333;
+  color: #e5e5e5;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+/* Ton message (droite) */
+.chat-msg.me {
+  background: #4da3ff;
+  color: #111;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+/* Timestamp */
+.msg-time {
+  display: block;
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 4px;
+  text-align: right;
+}
+
+/* Input */
+.chat-input {
+  display: flex;
+  padding: 10px;
+  background: #111;
+  border-top: 1px solid #333;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 10px;
+  background: #222;
+  border: none;
+  border-radius: 6px;
+  color: #e5e5e5;
+}
+
+.chat-input button {
+  margin-left: 10px;
+  padding: 10px 16px;
+  background: #4da3ff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #111;
+}

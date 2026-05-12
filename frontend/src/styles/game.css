@@ -1,21 +1,33 @@
-/* --- Layout global --- */
-.game-container {
+/* --- Layout global : plateau à gauche, chat à droite --- */
+.game-page {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  margin-top: 40px;
+  justify-content: center;
+  gap: 32px;
+  padding: 20px;
   color: #e5e5e5;
   font-family: Inter, sans-serif;
 }
 
+/* Zone gauche : infos + plateau */
+.game-left {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+/* Zone droite : chat */
+.game-right {
+  width: 300px; /* largeur fixe du chat */
+}
+
+/* --- Bannière de victoire --- */
 .winner-banner {
   font-size: 32px;
   margin-top: 20px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   color: #4da3ff;
 }
 
+/* --- Bouton reset --- */
 .reset-btn {
   margin-top: 20px;
   padding: 12px 24px;
@@ -32,8 +44,6 @@
 .reset-btn:hover {
   background: #6bb6ff;
 }
-
-
 
 /* --- Plateau 9x9 --- */
 .board {
@@ -57,6 +67,7 @@
   overflow: hidden;
   background: #222;
   transition: border-color 0.2s ease;
+  position: relative; /* nécessaire pour l’overlay */
 }
 
 .subboard:hover {
@@ -72,7 +83,7 @@
   pointer-events: none;
 }
 
-/* Overlay géant pour une sous-grille gagnée */
+/* --- Overlay géant pour une sous-grille gagnée --- */
 .subboard-winner {
   position: absolute;
   top: 0;
@@ -82,13 +93,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 90px; /* taille énorme */
+  font-size: 90px;
   font-weight: 900;
   opacity: 0.15;
   pointer-events: none;
 }
 
-/* Couleurs selon le gagnant */
 .winner-x {
   color: #4da3ff;
 }
@@ -96,12 +106,6 @@
 .winner-o {
   color: #ff6b6b;
 }
-
-/* Important : la sous-grille doit être positionnée */
-.subboard {
-  position: relative;
-}
-
 
 /* --- Cellule --- */
 .cell {
@@ -127,4 +131,47 @@
 
 .cell.o {
   color: #ff6b6b;
+}
+
+
+/* --- Chat fixé à droite --- */
+.fixed-chat {
+  position: fixed;
+  right: 0;
+  top: 80px; /* sous la navbar */
+  height: calc(100vh - 100px);
+  width: 300px;
+  transition: transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Chat ouvert */
+.fixed-chat.open {
+  transform: translateX(0);
+}
+
+/* Chat fermé : slide vers la droite */
+.fixed-chat.closed {
+  transform: translateX(260px);
+}
+
+/* Bouton pour ouvrir/fermer le chat */
+.chat-toggle-btn {
+  position: absolute;
+  left: -32px;
+  top: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #4da3ff;
+  color: #111;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.2s;
+}
+
+.chat-toggle-btn:hover {
+  background: #6bb6ff;
 }

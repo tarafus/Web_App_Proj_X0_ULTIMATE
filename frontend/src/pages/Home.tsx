@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import "../styles/home.css";
+import { useAuthStore } from "../store/authStore.ts";
 
 export default function Home() {
 
@@ -14,9 +15,9 @@ export default function Home() {
     navigate(`/game/${fakeId}`);
   }
 
-
   return (
     <div className="home-container">
+      
 
       {/* HERO */}
       <section className="hero">
