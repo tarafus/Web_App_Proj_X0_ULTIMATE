@@ -1,4 +1,5 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import Navbar from "./components/Navbar.tsx";
 import Game from "./pages/Game.tsx";
 import Home from "./pages/Home.tsx";
@@ -9,63 +10,75 @@ import Profile from "./pages/Profile.tsx";
 import Lobby from "./pages/Lobby.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import GuestRoute from "./components/GuestRoute.tsx";
+import { useAuthStore } from "./store/authStore.ts";
+import { authApi } from "./api/authApi.ts";
+import { usePersonalWebSocket } from "./hooks/usePersonalWebSocket.ts";
+import { useNotificationStore } from "./store/notificationStore.ts";
 
-function App() {
+function AppContent() {
+  const user      = useAuthStore((s) => s.user);
+  const navigate  = useNavigate();
+  const loadAll   = useNotificationStore((s) => s.loadAll);
+  const addNotif  = useNotificationStore((s) => s.add);
+  const clearStore = useNotificationStore((s) => s.clear);
+
+  // Charger les notifs persistées au login / vider au logout
+  useEffect(() => {
+    if (user) {
+      console.log("[App] User logged in, loading notifications from DB");
+      loadAll();
+    } else {
+      clearStore();
+    }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // WebSocket personnel global
+  usePersonalWebSocket(user?.username ?? "", {
+    onNotification: (notif) => {
+      console.log("[App] New notification received:", notif);
+      addNotif(notif);
+    },
+    onInvitationAccepted: (gameId) => {
+      console.log("[App] Invitation accepted, navigating to", gameId);
+      navigate(`/game/${gameId}`);
+    },
+    onMatched: (gameId) => {
+      console.log("[App] Matched, navigating to", gameId);
+      navigate(`/game/${gameId}`);
+    },
+  });
+
   return (
-    <BrowserRouter>
+    <>
       <Navbar />
-
       <Routes>
         <Route path="/" element={<Home />} />
-
-        {/* Routes accessibles uniquement si NON connecté */}
-        <Route
-          path="/login"
-          element={
-            <GuestRoute>
-              <Login />
-            </GuestRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <GuestRoute>
-              <Register />
-            </GuestRoute>
-          }
-        />
-
-        {/* Routes protégées */}
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/lobby"
-          element={
-            <ProtectedRoute>
-              <Lobby />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/game/:id"
-          element={
-            <ProtectedRoute>
-              <Game />
-            </ProtectedRoute>
-          }
-        />
-
+        <Route path="/login"       element={<GuestRoute><Login /></GuestRoute>} />
+        <Route path="/register"    element={<GuestRoute><Register /></GuestRoute>} />
+        <Route path="/profile"     element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/lobby"       element={<ProtectedRoute><Lobby /></ProtectedRoute>} />
+        <Route path="/game/:id"    element={<ProtectedRoute><Game /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<Leaderboard />} />
       </Routes>
-    </BrowserRouter>
+    </>
   );
 }
 
-export default App;
+export default function App() {
+  const token      = useAuthStore((s) => s.token);
+  const loginStore = useAuthStore((s) => s.login);
+  const logout     = useAuthStore((s) => s.logout);
+
+  useEffect(() => {
+    if (!token) return;
+    authApi.me(token)
+      .then((res) => loginStore(token, res.data))
+      .catch(() => logout());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+}

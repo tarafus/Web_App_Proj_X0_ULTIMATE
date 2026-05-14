@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore.ts";
 import "../styles/navbar.css";
+import NotificationBell from "./NotificationBell.tsx";
 
 export default function Navbar() {
     const user = useAuthStore((s) => s.user);
@@ -38,6 +39,7 @@ export default function Navbar() {
                         Déconnexion
                     </button>
                 )}
+                <NotificationBell />
             </div>
         </nav>
     );

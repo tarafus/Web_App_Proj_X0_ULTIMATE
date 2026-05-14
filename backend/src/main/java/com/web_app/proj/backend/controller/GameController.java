@@ -1,55 +1,88 @@
 package com.web_app.proj.backend.controller;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.web_app.proj.backend.dto.ChatMessageDTO;
 import com.web_app.proj.backend.dto.GameDTO;
 import com.web_app.proj.backend.mapper.GameMapper;
 import com.web_app.proj.backend.model.Game;
+import com.web_app.proj.backend.model.NotificationType;
+import com.web_app.proj.backend.service.ChatService;
 import com.web_app.proj.backend.service.GameService;
+import com.web_app.proj.backend.service.NotificationService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/game")
-@CrossOrigin
 public class GameController {
 
     private final GameService gameService;
+    private final ChatService chatService;
+    private final NotificationService notificationService;
 
-    public GameController(GameService gameService) {
+    public GameController(GameService gameService,
+                          ChatService chatService,
+                          NotificationService notificationService) {
         this.gameService = gameService;
+        this.chatService = chatService;
+        this.notificationService = notificationService;
     }
 
-    // Créer une partie
     @PostMapping("/create")
-    public GameDTO create(@RequestAttribute("username") String username) {
-        Game game = gameService.createGame(username);
-        return GameMapper.toDTO(game);
+    public GameDTO createGame(@RequestAttribute("username") String username) {
+        return GameMapper.toDTO(gameService.createGame(username));
     }
 
-    // Rejoindre une partie
     @PostMapping("/join/{id}")
-    public GameDTO join(@PathVariable Long id, @RequestAttribute("username") String username) {
-        Game game = gameService.joinGame(id, username);
-        return GameMapper.toDTO(game);
+    public GameDTO joinGame(@PathVariable Long id,
+                            @RequestAttribute("username") String username) {
+        return GameMapper.toDTO(gameService.joinGame(id, username));
     }
 
-    // Récupérer une partie
     @GetMapping("/{id}")
-    public GameDTO get(@PathVariable Long id) {
-        Game game = gameService.getGame(id).orElseThrow();
-        return GameMapper.toDTO(game);
+    public GameDTO getGame(@PathVariable Long id) {
+        return GameMapper.toDTO(gameService.getGame(id).orElseThrow());
     }
 
-    // Mettre à jour l'état (utile pour debug, remplacé par WebSocket ensuite)
-    @PostMapping("/{id}/state")
-    public GameDTO updateState(@PathVariable Long id, @RequestBody String newState) {
-        Game game = gameService.updateState(id, newState);
-        return GameMapper.toDTO(game);
+    @GetMapping("/{id}/state")
+    public Map<String, Object> getState(@PathVariable Long id) {
+        Game g = gameService.getGame(id).orElseThrow();
+        return gameService.parseState(g.getState());
+    }
+
+    @GetMapping("/ongoing")
+    public List<GameDTO> getOngoing(@RequestAttribute("username") String username) {
+        return gameService.getOngoingGamesForUser(username).stream()
+                .map(GameMapper::toDTO).toList();
+    }
+
+    @PostMapping("/{id}/ping")
+    public ResponseEntity<Void> ping(@PathVariable Long id,
+                                     @RequestAttribute("username") String username) {
+        Game game = gameService.getGame(id).orElseThrow();
+        String other;
+        if (game.getPlayer1() != null && game.getPlayer1().getUsername().equals(username)) {
+            other = game.getPlayer2() != null ? game.getPlayer2().getUsername() : null;
+        } else {
+            other = game.getPlayer1() != null ? game.getPlayer1().getUsername() : null;
+        }
+        if (other != null) {
+            notificationService.create(
+                    other,
+                    NotificationType.REMINDER,
+                    username + " vous attend pour finir la partie",
+                    id,
+                    null,
+                    username
+            );
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/messages")
+    public List<ChatMessageDTO> getMessages(@PathVariable Long id) {
+        return chatService.getMessages(id);
     }
 }

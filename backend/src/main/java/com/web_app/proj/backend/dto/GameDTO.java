@@ -1,3 +1,4 @@
+// src/main/java/com/web_app/proj/backend/dto/GameDTO.java
 package com.web_app.proj.backend.dto;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,8 @@ public class GameDTO {
 
     public Long player1Id;
     public Long player2Id;
+    public String player1Username;
+    public String player2Username;
     public Long winnerId;
 
     public String state;

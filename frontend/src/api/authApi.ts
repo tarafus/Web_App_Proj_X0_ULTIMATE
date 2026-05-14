@@ -1,3 +1,4 @@
+// src/api/authApi.ts
 import { api } from "./api.ts";
 
 export interface LoginRequest {
@@ -12,10 +13,10 @@ export interface RegisterRequest {
 
 export const authApi = {
   register: (data: RegisterRequest) =>
-    api.post<string>(`/auth/register?username=${data.username}&password=${data.password}`),
+    api.post<string>("/auth/register", data),
 
   login: (data: LoginRequest) =>
-    api.post<string>(`/auth/login?username=${data.username}&password=${data.password}`),
+    api.post<string>("/auth/login", data),
 
   me: (token: string) =>
     api.get("/auth/me", {

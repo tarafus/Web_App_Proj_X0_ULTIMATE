@@ -21,6 +21,9 @@ docker exec -it nom_du_container psql -U postgres
 - \l (lister les BD)
 - \c nom_de_la_base (aller sur la BD pour pouvoir y executer des commandes SQL)
 
+### Effacer tout dans une table et dans les tables dépendantes
+TRUNCATE ma_table RESTART IDENTITY CASCADE;
+
 
 ## Docker 
 ### Build conteneur

@@ -1,26 +1,27 @@
 import { useChatStore } from "../store/chatStore.ts";
+import { useAuthStore } from "../store/authStore.ts";
 import { useState, useRef, useEffect } from "react";
 import "../styles/chat.css";
 
-export default function Chat() {
-  const messages = useChatStore((s) => s.messages);
-  const sendMessage = useChatStore((s) => s.sendMessage);
+interface ChatProps {
+  onSend: (content: string) => void;
+}
 
+export default function Chat({ onSend }: ChatProps) {
+  const messages = useChatStore((s) => s.messages);
+  const user     = useAuthStore((s) => s.user);
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Scroll auto
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages.length]);
 
   const handleSend = () => {
     if (!input.trim()) return;
-
-    // Limite stricte à 40 caractères
     const text = input.slice(0, 40);
-
-    sendMessage(text);
+    onSend(text);
     setInput("");
   };
 
@@ -34,17 +35,20 @@ export default function Chat() {
   return (
     <div className="chat-container">
       <div className="chat-messages">
-        {messages.map((m) => (
-          <div key={m.id} className={`chat-msg ${m.sender}`}>
-            <span className="msg-text">{m.text}</span>
-            <span className="msg-time">
-              {new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </span>
-          </div>
-        ))}
+        {messages.map((m) => {
+          const mine = m.username === user?.username;
+          return (
+            <div key={m.id} className={`chat-msg ${mine ? "me" : "opponent"}`}>
+              <span className="msg-username">{m.username}</span>
+              <span className="msg-text">{m.content}</span>
+              <span className="msg-time">
+                {new Date(m.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </div>
+          );
+        })}
         <div ref={bottomRef} />
       </div>
-
       <div className="chat-input">
         <input
           value={input}

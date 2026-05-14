@@ -2,30 +2,28 @@ import { useEffect, useRef } from "react";
 import SockJS from "sockjs-client";
 import { Client, IMessage } from "@stomp/stompjs";
 import { Player } from "../store/gameStore.ts";
+import { ChatMessage } from "../store/chatStore.ts";
 
-interface MovePayload {
-  sub: number;
-  cell: number;
-}
-
-
-interface GameDTO {
+export interface GameStatePayload {
   board: Player[][];
+  subWinners: Player[];
   currentPlayer: Player;
   globalWinner: Player;
   activeSubBoard: number | null;
+  sub?: number;
+  cell?: number;
 }
-
 
 export function useGameWebSocket(
   gameId: number,
-  onStateUpdate: (dto: GameDTO) => void,
-  onSystemMessage: (msg: string) => void
+  onStateUpdate: (state: GameStatePayload) => void,
+  onSystemMessage: (msg: string) => void,
+  onChatMessage: (msg: ChatMessage) => void
 ) {
   const stompClient = useRef<Client | null>(null);
 
   useEffect(() => {
-    const socket = new SockJS("http://localhost:8080/ws");
+    const socket = new SockJS(`http://${window.location.hostname}:8080/ws`);
 
     const client = new Client({
       webSocketFactory: () => socket as any,
@@ -33,15 +31,22 @@ export function useGameWebSocket(
     });
 
     client.onConnect = () => {
-      // Messages système
       client.subscribe(`/topic/game/${gameId}`, (message: IMessage) => {
         onSystemMessage(message.body);
       });
 
-      // État du jeu
       client.subscribe(`/topic/game/${gameId}/state`, (message: IMessage) => {
-        const dto: GameDTO = JSON.parse(message.body);
-        onStateUpdate(dto);
+        const state: GameStatePayload = JSON.parse(message.body);
+        onStateUpdate(state);
+      });
+
+      client.subscribe(`/topic/game/${gameId}/chat`, (message: IMessage) => {
+        try {
+          const chatMsg: ChatMessage = JSON.parse(message.body);
+          onChatMessage(chatMsg);
+        } catch (e) {
+          console.error("[GameWS] chat parse:", e);
+        }
       });
     };
 
@@ -53,26 +58,52 @@ export function useGameWebSocket(
     };
   }, [gameId]);
 
-  const sendJoin = (username: string) => {
-    stompClient.current?.publish({
-      destination: `/app/game/${gameId}/join`,
-      body: username,
-    });
+  const safePublish = (destination: string, body: string) => {
+    const client = stompClient.current;
+    if (!client || !client.connected) return;
+    try {
+      client.publish({ destination, body });
+    } catch (e) {
+      console.warn("Publish failed:", e);
+    }
   };
 
-  const sendMove = (move: MovePayload) => {
-    stompClient.current?.publish({
-      destination: `/app/game/${gameId}/move`,
-      body: JSON.stringify(move),
-    });
-  };
+  const sendJoin = (username: string) =>
+    safePublish(`/app/game/${gameId}/join`, username);
 
-  const sendEnd = (winner: string) => {
-    stompClient.current?.publish({
-      destination: `/app/game/${gameId}/end`,
-      body: winner,
-    });
-  };
+  const sendState = (state: GameStatePayload) =>
+    safePublish(`/app/game/${gameId}/move`, JSON.stringify(state));
 
-  return { sendJoin, sendMove, sendEnd };
+  const sendLeave = (username: string) =>
+    safePublish(`/app/game/${gameId}/leave`, username);
+
+  const sendEnd = (winner: string) =>
+    safePublish(`/app/game/${gameId}/end`, winner);
+
+  const sendAbandon = (username: string) =>
+    safePublish(`/app/game/${gameId}/abandon`, username);
+
+  const sendChatMessage = (username: string, content: string) =>
+    safePublish(`/app/game/${gameId}/chat`, JSON.stringify({ username, content }));
+
+  const sendRematchRequest = (username: string) =>
+    safePublish(`/app/game/${gameId}/rematch/request`, username);
+
+  const sendRematchAccept = (username: string) =>
+    safePublish(`/app/game/${gameId}/rematch/accept`, username);
+
+  const sendRematchDecline = (username: string) =>
+    safePublish(`/app/game/${gameId}/rematch/decline`, username);
+
+  return {
+    sendJoin,
+    sendState,
+    sendLeave,
+    sendEnd,
+    sendAbandon,
+    sendChatMessage,
+    sendRematchRequest,
+    sendRematchAccept,
+    sendRematchDecline,
+  };
 }

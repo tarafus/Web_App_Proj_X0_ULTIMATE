@@ -14,6 +14,7 @@ export interface GameState {
   setCurrentPlayer: (player: Player) => void;
   setGlobalWinner: (winner: Player) => void;
   setActiveSubBoard: (sub: number | null) => void;
+  setSubWinners: (subWinners: Player[]) => void;
 
   reset: () => void;
   play: (sub: number, cell: number) => void;
@@ -32,6 +33,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   setCurrentPlayer: (player) => set({ currentPlayer: player }),
   setGlobalWinner: (winner) => set({ globalWinner: winner }),
   setActiveSubBoard: (sub) => set({ activeSubBoard: sub }),
+  setSubWinners: (subWinners) => set({ subWinners }),
 
   // --- logique locale ---
   play: (sub, cell) => {

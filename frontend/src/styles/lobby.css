@@ -1,79 +1,148 @@
 .lobby-container {
-  max-width: 1100px;
+  max-width: 720px;
   margin: 40px auto;
-  padding: 20px;
+  padding: 0 20px 80px;
   color: #e5e5e5;
   font-family: Inter, sans-serif;
 }
 
-.lobby-container h1 {
-  text-align: center;
+.lobby-title {
   font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 32px;
+}
+
+.lobby-section {
   margin-bottom: 40px;
 }
 
-.lobby-sections {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-/* Cartes */
-.lobby-card {
-  background: #1a1a1a;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.3);
-}
-
-.lobby-card h2 {
-  font-size: 22px;
-  margin-bottom: 16px;
-  color: #4da3ff;
-}
-
-/* Listes */
-.lobby-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.lobby-card li {
-  background: #222;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Boutons */
-.lobby-card button {
-  background: #4da3ff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
+.lobby-section h2 {
+  font-size: 20px;
   font-weight: 600;
-  color: #111;
+  margin-bottom: 16px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 13px;
+}
+
+.lobby-empty {
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* Joueurs */
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1c1c1c;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 14px 18px;
+  transition: border-color 0.2s;
+}
+
+.player-card:hover {
+  border-color: #4da3ff;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.player-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.player-stats {
+  font-size: 13px;
+  opacity: 0.55;
+}
+
+.btn-invite {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #4da3ff;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
   transition: 0.2s;
+  font-family: inherit;
+  white-space: nowrap;
 }
 
-.lobby-card button:hover {
-  background: #6bb6ff;
+.btn-invite:hover:not(:disabled) {
+  background: #6bb4ff;
 }
 
-.inv-buttons {
+.btn-invite.sent,
+.btn-invite:disabled {
+  background: #2a2a2a;
+  color: #666;
+  border: 1px solid #444;
+  cursor: default;
+}
+
+/* Invitations reçues */
+.invitation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.invitation-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1c1c2e;
+  border: 1px solid #4da3ff55;
+  border-radius: 10px;
+  padding: 14px 18px;
+  gap: 16px;
+  animation: slide-up 0.2s ease-out;
+}
+
+.invitation-actions {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
 }
 
-.inv-buttons button:nth-child(2) {
-  background: #ff6b6b;
+.btn-accept {
+  padding: 7px 16px;
+  border-radius: 7px;
+  border: none;
+  background: #4da3ff;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-family: inherit;
 }
 
-.inv-buttons button:nth-child(2):hover {
-  background: #ff8585;
+.btn-accept:hover { background: #6bb4ff; }
+
+.btn-decline {
+  padding: 7px 16px;
+  border-radius: 7px;
+  border: 1px solid #555;
+  background: transparent;
+  color: #e5e5e5;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-family: inherit;
 }
+
+.btn-decline:hover { background: #2a2a2a; }
