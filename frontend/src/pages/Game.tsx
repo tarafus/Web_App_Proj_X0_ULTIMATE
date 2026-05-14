@@ -9,7 +9,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
 import { useGameWebSocket } from "../hooks/useGameWebSocket.ts";
 import "../styles/game.css";
-import "../styles/chat.css";
 
 interface GameInfo {
   id: number;
@@ -21,6 +20,7 @@ interface GameInfo {
 }
 
 type RematchState = "idle" | "sent" | "received";
+type FriendStatus = "NONE" | "PENDING_SENT" | "PENDING_RECEIVED" | "FRIENDS" | "SELF";
 
 export default function Game() {
   const { id } = useParams();
@@ -40,6 +40,8 @@ export default function Game() {
   const [pingDone, setPingDone]         = useState(false);
   const [abandonedBy, setAbandonedBy]   = useState<string | null>(null);
   const [confirmAbandon, setConfirmAbandon] = useState(false);
+
+  const [friendStatus, setFriendStatus] = useState<FriendStatus>("NONE");
 
   const joinSentRef     = useRef(false);
   const globalWinnerRef = useRef<string | null>(null);
@@ -63,7 +65,6 @@ export default function Game() {
 
   useEffect(() => { globalWinnerRef.current = globalWinner; }, [globalWinner]);
 
-  // Reset à chaque nouvelle partie
   useEffect(() => {
     setGameInfo(null);
     setMySymbol(null);
@@ -74,6 +75,7 @@ export default function Game() {
     setPingDone(false);
     setAbandonedBy(null);
     setConfirmAbandon(false);
+    setFriendStatus("NONE");
     if (rematchTimeoutRef.current) {
       clearTimeout(rematchTimeoutRef.current);
       rematchTimeoutRef.current = null;
@@ -84,14 +86,8 @@ export default function Game() {
   }, [gameId]);
 
   const {
-    sendJoin,
-    sendState,
-    sendLeave,
-    sendAbandon,
-    sendChatMessage,
-    sendRematchRequest,
-    sendRematchAccept,
-    sendRematchDecline,
+    sendJoin, sendState, sendLeave, sendAbandon, sendChatMessage,
+    sendRematchRequest, sendRematchAccept, sendRematchDecline,
   } = useGameWebSocket(
     gameId,
     (state) => {
@@ -102,8 +98,6 @@ export default function Game() {
       if (state.activeSubBoard !== undefined) setActiveSubBoard(state.activeSubBoard);
     },
     (msg) => {
-      console.log("System:", msg);
-
       if (msg.startsWith("[JOIN]")) {
         api.get(`/game/${gameId}`).then((res) => setGameInfo(res.data)).catch(() => {});
       } else if (msg.startsWith("[PLAYER_LEFT]")) {
@@ -135,12 +129,9 @@ export default function Game() {
         navigate("/");
       }
     },
-    (chatMsg) => {
-      addChatMessage(chatMsg);
-    }
+    (chatMsg) => addChatMessage(chatMsg)
   );
 
-  // Quitter → notifier l'adversaire
   useEffect(() => {
     return () => {
       if (!globalWinnerRef.current) {
@@ -150,7 +141,6 @@ export default function Game() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Join idempotent
   useEffect(() => {
     if (!user) return;
     api.post(`/game/join/${gameId}`)
@@ -166,7 +156,6 @@ export default function Game() {
       });
   }, [gameId, user]);
 
-  // Charger le state initial
   useEffect(() => {
     if (!gameInfo) return;
     api.get(`/game/${gameId}/state`)
@@ -181,7 +170,6 @@ export default function Game() {
       .catch((e) => console.error("Erreur GET state:", e));
   }, [gameInfo, gameId]);
 
-  // Charger l'historique du chat
   useEffect(() => {
     if (!gameInfo) return;
     api.get<ChatMessage[]>(`/game/${gameId}/messages`)
@@ -189,13 +177,25 @@ export default function Game() {
       .catch(() => {});
   }, [gameInfo, gameId]);
 
-  // Envoyer JOIN une seule fois
   useEffect(() => {
     if (!gameInfo || !user) return;
     if (joinSentRef.current) return;
     joinSentRef.current = true;
     const t = setTimeout(() => sendJoin(user.username), 300);
     return () => clearTimeout(t);
+  }, [gameInfo, user]);
+
+  // Charger le statut d'amitié avec l'adversaire
+  useEffect(() => {
+    if (!gameInfo || !user) return;
+    const opponent = gameInfo.player1Id === user.id
+      ? gameInfo.player2Username
+      : gameInfo.player1Username;
+    if (!opponent) return;
+
+    api.get<{ status: FriendStatus }>(`/friends/status/${encodeURIComponent(opponent)}`)
+      .then((res) => setFriendStatus(res.data.status))
+      .catch(() => {});
   }, [gameInfo, user]);
 
   const handleMove = (move: { sub: number; cell: number }) => {
@@ -206,12 +206,9 @@ export default function Game() {
     useGameStore.getState().play(move.sub, move.cell);
     const s = useGameStore.getState();
     sendState({
-      sub:           move.sub,
-      cell:          move.cell,
-      board:         s.board,
-      subWinners:    s.subWinners,
-      currentPlayer: s.currentPlayer,
-      globalWinner:  s.globalWinner,
+      sub: move.sub, cell: move.cell,
+      board: s.board, subWinners: s.subWinners,
+      currentPlayer: s.currentPlayer, globalWinner: s.globalWinner,
       activeSubBoard: s.activeSubBoard,
     });
   };
@@ -221,8 +218,32 @@ export default function Game() {
     sendChatMessage(user.username, content);
   };
 
-  const handleAbandonClick = () => setConfirmAbandon(true);
+  const handleAddFriend = async () => {
+    if (!gameInfo || !user) return;
+    const opponent = gameInfo.player1Id === user.id
+      ? gameInfo.player2Username
+      : gameInfo.player1Username;
+    if (!opponent) return;
 
+    try {
+      if (friendStatus === "PENDING_RECEIVED") {
+        // Trouver l'id de la demande et l'accepter
+        const reqs = await api.get<Array<{ id: number; requester: string }>>("/friends/requests");
+        const req = reqs.data.find((r) => r.requester === opponent);
+        if (req) {
+          await api.post(`/friends/accept/${req.id}`);
+          setFriendStatus("FRIENDS");
+        }
+      } else if (friendStatus === "NONE") {
+        await api.post(`/friends/request?addressee=${encodeURIComponent(opponent)}`);
+        setFriendStatus("PENDING_SENT");
+      }
+    } catch {
+      alert("Erreur lors de l'ajout en ami.");
+    }
+  };
+
+  const handleAbandonClick = () => setConfirmAbandon(true);
   const confirmAbandonAction = () => {
     if (!user) return;
     sendAbandon(user.username);
@@ -263,8 +284,7 @@ export default function Game() {
     return (
       <div className="game-page">
         <div className="game-left">
-          <h1>Erreur</h1>
-          <p>{error}</p>
+          <h1>Erreur</h1><p>{error}</p>
           <button className="btn-primary" onClick={() => navigate("/")}>Retour à l'accueil</button>
         </div>
       </div>
@@ -274,17 +294,29 @@ export default function Game() {
   if (!gameInfo || !mySymbol) {
     return (
       <div className="game-page">
-        <div className="game-left">
-          <h1>Chargement de la partie...</h1>
-        </div>
+        <div className="game-left"><h1>Chargement de la partie...</h1></div>
       </div>
     );
   }
 
-  const isMyTurn           = currentPlayer === mySymbol;
+  const isMyTurn = currentPlayer === mySymbol;
   const waitingForOpponent = gameInfo.player2Id === null;
-  const canPlay            = !waitingForOpponent && isMyTurn && !globalWinner;
-  const gameActive         = !waitingForOpponent && !globalWinner;
+  const canPlay = !waitingForOpponent && isMyTurn && !globalWinner;
+  const gameActive = !waitingForOpponent && !globalWinner;
+
+  const opponentUsername = gameInfo.player1Id === user?.id
+    ? gameInfo.player2Username
+    : gameInfo.player1Username;
+
+  // Texte du bouton d'amitié
+  const friendBtnLabel =
+    friendStatus === "FRIENDS"          ? "Déjà amis ✓"
+    : friendStatus === "PENDING_SENT"   ? "Demande envoyée"
+    : friendStatus === "PENDING_RECEIVED" ? "Accepter sa demande d'ami"
+    : "Ajouter en ami";
+
+  const friendBtnDisabled =
+    friendStatus === "FRIENDS" || friendStatus === "PENDING_SENT" || friendStatus === "SELF";
 
   return (
     <div className="game-page">
@@ -296,6 +328,25 @@ export default function Game() {
             <> — {gameInfo.player1Username} (X) vs {gameInfo.player2Username} (O)</>
           )}
         </p>
+
+        {/* Bouton ajouter en ami (visible dès qu'on a un adversaire) */}
+        {opponentUsername && (
+          <div style={{ marginBottom: 8 }}>
+            <button
+              onClick={handleAddFriend}
+              disabled={friendBtnDisabled}
+              style={{
+                padding: "6px 14px", borderRadius: 7,
+                border: "1px solid #4da3ff", background: "transparent",
+                color: friendBtnDisabled ? "#666" : "#4da3ff",
+                fontSize: 13, cursor: friendBtnDisabled ? "default" : "pointer",
+                fontFamily: "inherit", transition: "0.2s",
+              }}
+            >
+              {friendBtnLabel}
+            </button>
+          </div>
+        )}
 
         {waitingForOpponent ? (
           <p style={{ color: "#888" }}>En attente d'un second joueur...</p>
@@ -316,19 +367,18 @@ export default function Game() {
 
         {opponentLeft && !globalWinner && (
           <div style={{
-            marginTop: 12, padding: "12px 16px",
-            background: "#1c1c1c", border: "1px solid #555", borderRadius: 8,
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+            marginTop: 12, padding: "12px 16px", background: "#1c1c1c",
+            border: "1px solid #555", borderRadius: 8, display: "flex",
+            alignItems: "center", justifyContent: "space-between", gap: 12,
           }}>
             <span style={{ fontSize: 14 }}>Votre adversaire a quitté la partie.</span>
             <button
-              onClick={handlePing}
-              disabled={pingDone}
+              onClick={handlePing} disabled={pingDone}
               style={{
                 padding: "6px 14px", borderRadius: 7, border: "none",
                 background: pingDone ? "#2a2a2a" : "#4da3ff",
                 color: pingDone ? "#666" : "#fff",
-                cursor: pingDone ? "default" : "pointer", fontSize: 13, flexShrink: 0,
+                cursor: pingDone ? "default" : "pointer", fontSize: 13,
               }}
             >
               {pingDone ? "Rappel envoyé ✓" : "Rappeler l'adversaire"}

@@ -1,20 +1,15 @@
 package com.web_app.proj.backend.service;
 
-import java.util.List;
-import java.util.Optional;
-
+import com.web_app.proj.backend.dto.InvitationDTO;
+import com.web_app.proj.backend.mapper.InvitationMapper;
+import com.web_app.proj.backend.model.*;
+import com.web_app.proj.backend.repository.InvitationRepository;
+import com.web_app.proj.backend.repository.UserRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import com.web_app.proj.backend.dto.InvitationDTO;
-import com.web_app.proj.backend.mapper.InvitationMapper;
-import com.web_app.proj.backend.model.Game;
-import com.web_app.proj.backend.model.Invitation;
-import com.web_app.proj.backend.model.InvitationStatus;
-import com.web_app.proj.backend.model.NotificationType;
-import com.web_app.proj.backend.model.User;
-import com.web_app.proj.backend.repository.InvitationRepository;
-import com.web_app.proj.backend.repository.UserRepository;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class InvitationService {
@@ -39,27 +34,34 @@ public class InvitationService {
 
     public InvitationDTO send(String senderUsername, String receiverUsername) {
         if (senderUsername.equals(receiverUsername)) {
-            throw new RuntimeException("Cannot invite yourself");
+            throw new RuntimeException("Vous ne pouvez pas vous inviter vous-même");
         }
 
         User sender = userRepository.findByUsername(senderUsername).orElseThrow();
-        User receiver = userRepository.findByUsername(receiverUsername).orElseThrow();
+        User receiver = userRepository.findByUsername(receiverUsername)
+                .orElseThrow(() -> new RuntimeException("Joueur introuvable"));
 
-        // Cross-invitation : si receiver a déjà invité sender, on auto-accepte
+        // 1. Cross-invitation : si receiver nous a déjà invité → auto-accept
         Optional<Invitation> reverseInv = invitationRepository
                 .findBySenderAndReceiverAndStatus(receiver, sender, InvitationStatus.PENDING);
         if (reverseInv.isPresent()) {
             return accept(reverseInv.get().getId(), senderUsername);
         }
 
-        // Sinon création normale
+        // 2. Anti-spam : empêcher d'envoyer plusieurs invitations à la même personne
+        Optional<Invitation> forwardInv = invitationRepository
+                .findBySenderAndReceiverAndStatus(sender, receiver, InvitationStatus.PENDING);
+        if (forwardInv.isPresent()) {
+            throw new RuntimeException("Vous avez déjà invité ce joueur");
+        }
+
+        // 3. Nouvelle invitation
         Invitation inv = new Invitation();
         inv.setSender(sender);
         inv.setReceiver(receiver);
         inv.setStatus(InvitationStatus.PENDING);
         Invitation saved = invitationRepository.save(inv);
 
-        // Notification persistée + push WS
         notificationService.create(
                 receiverUsername,
                 NotificationType.INVITATION,
@@ -73,13 +75,14 @@ public class InvitationService {
     }
 
     public InvitationDTO accept(Long invitationId, String username) {
-        Invitation inv = invitationRepository.findById(invitationId).orElseThrow();
+        Invitation inv = invitationRepository.findById(invitationId)
+                .orElseThrow(() -> new RuntimeException("Invitation introuvable"));
 
         if (!inv.getReceiver().getUsername().equals(username)) {
-            throw new RuntimeException("Not your invitation");
+            throw new RuntimeException("Cette invitation ne vous est pas destinée");
         }
         if (inv.getStatus() != InvitationStatus.PENDING) {
-            throw new RuntimeException("Invitation already handled");
+            throw new RuntimeException("Cette invitation a déjà été traitée");
         }
 
         Game game = gameService.createGame(inv.getSender().getUsername());
@@ -89,11 +92,8 @@ public class InvitationService {
         inv.setGame(game);
         invitationRepository.save(inv);
 
-        // Supprimer la notif côté receiver (elle n'a plus lieu d'être)
         notificationService.clearInvitationNotif(invitationId, username);
 
-        // Notifier le sender — message transient, pas une notif persistée
-        // (déclenche la navigation immédiate)
         messagingTemplate.convertAndSend(
                 "/topic/user/" + inv.getSender().getUsername(),
                 "[INVITATION_ACCEPTED] " + game.getId()
@@ -103,22 +103,21 @@ public class InvitationService {
     }
 
     public InvitationDTO decline(Long invitationId, String username) {
-        Invitation inv = invitationRepository.findById(invitationId).orElseThrow();
+        Invitation inv = invitationRepository.findById(invitationId)
+                .orElseThrow(() -> new RuntimeException("Invitation introuvable"));
 
         if (!inv.getReceiver().getUsername().equals(username)) {
-            throw new RuntimeException("Not your invitation");
+            throw new RuntimeException("Cette invitation ne vous est pas destinée");
         }
         if (inv.getStatus() != InvitationStatus.PENDING) {
-            throw new RuntimeException("Invitation already handled");
+            throw new RuntimeException("Cette invitation a déjà été traitée");
         }
 
         inv.setStatus(InvitationStatus.DECLINED);
         invitationRepository.save(inv);
 
-        // Nettoyer côté receiver
         notificationService.clearInvitationNotif(invitationId, username);
 
-        // Notifier le sender (persisté car informatif)
         notificationService.create(
                 inv.getSender().getUsername(),
                 NotificationType.DECLINED,

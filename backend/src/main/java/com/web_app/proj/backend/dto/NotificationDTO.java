@@ -8,19 +8,21 @@ public class NotificationDTO {
     private String message;
     private Long gameId;
     private Long invitationId;
+    private Long friendshipId;
     private String fromUsername;
     private LocalDateTime createdAt;
 
     public NotificationDTO() {}
 
     public NotificationDTO(Long id, String type, String message,
-                           Long gameId, Long invitationId,
+                           Long gameId, Long invitationId, Long friendshipId,
                            String fromUsername, LocalDateTime createdAt) {
         this.id = id;
         this.type = type;
         this.message = message;
         this.gameId = gameId;
         this.invitationId = invitationId;
+        this.friendshipId = friendshipId;
         this.fromUsername = fromUsername;
         this.createdAt = createdAt;
     }
@@ -35,6 +37,8 @@ public class NotificationDTO {
     public void setGameId(Long gameId) { this.gameId = gameId; }
     public Long getInvitationId() { return invitationId; }
     public void setInvitationId(Long invitationId) { this.invitationId = invitationId; }
+    public Long getFriendshipId() { return friendshipId; }
+    public void setFriendshipId(Long friendshipId) { this.friendshipId = friendshipId; }
     public String getFromUsername() { return fromUsername; }
     public void setFromUsername(String fromUsername) { this.fromUsername = fromUsername; }
     public LocalDateTime getCreatedAt() { return createdAt; }

@@ -4,11 +4,25 @@ import { useNotificationStore } from "../store/notificationStore.ts";
 import { api } from "../api/api.ts";
 
 export default function NotificationBell() {
-  const [open, setOpen]         = useState(false);
-  const navigate                = useNavigate();
-  const ref                     = useRef<HTMLDivElement>(null);
-  const { notifications, dismiss, dismissAll } = useNotificationStore();
+  const [open, setOpen] = useState(false);
+  const navigate        = useNavigate();
+  const ref             = useRef<HTMLDivElement>(null);
 
+  const notifications  = useNotificationStore((s) => s.notifications);
+  const readIds        = useNotificationStore((s) => s.readIds);
+  const dismiss        = useNotificationStore((s) => s.dismiss);
+  const dismissAll     = useNotificationStore((s) => s.dismissAll);
+  const markAllAsRead  = useNotificationStore((s) => s.markAllAsRead);
+
+  const unreadCount = notifications.filter((n) => !readIds.has(n.id)).length;
+
+  // Marquer toutes comme lues quand on ouvre la cloche
+  // (et aussi si de nouvelles arrivent pendant qu'elle est ouverte)
+  useEffect(() => {
+    if (open) markAllAsRead();
+  }, [open, notifications.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Click-outside pour fermer
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -19,7 +33,7 @@ export default function NotificationBell() {
 
   const handleNotifClick = (n: typeof notifications[0]) => {
     if (n.type === "invitation" && n.invitationId) {
-      api.post(`/invitation/${n.invitationId}/accept`)
+      api.post(`/invitation/accept/${n.invitationId}`)
         .then((res) => {
           if (res.data.gameId) navigate(`/game/${res.data.gameId}`);
           dismiss(n.id);
@@ -44,7 +58,7 @@ export default function NotificationBell() {
         title="Notifications"
       >
         🔔
-        {notifications.length > 0 && (
+        {unreadCount > 0 && (
           <span style={{
             position: "absolute", top: 0, right: 0,
             background: "#e53935", color: "#fff",
@@ -52,7 +66,7 @@ export default function NotificationBell() {
             fontSize: 10, fontWeight: 700,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            {notifications.length > 9 ? "9+" : notifications.length}
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>

@@ -1,32 +1,37 @@
 package com.web_app.proj.backend.exception;
 
+import java.util.Map;
+import java.util.NoSuchElementException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+/**
+ * Mappe les exceptions métier (RuntimeException) en réponses HTTP propres
+ * avec un body JSON { "error": "...message..." } au lieu d'un 500 brut.
+ */
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 🔥 Cas où l'utilisateur existe déjà
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<String> handleBadRequest(BadRequestException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ex.getMessage());
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(NoSuchElementException e) {
+        String msg = e.getMessage() != null ? e.getMessage() : "Ressource introuvable";
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", msg));
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(ex.getMessage());
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArg(IllegalArgumentException e) {
+        String msg = e.getMessage() != null ? e.getMessage() : "Argument invalide";
+        return ResponseEntity.badRequest().body(Map.of("error", msg));
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGeneric(Exception ex) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Erreur interne du serveur");
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntime(RuntimeException e) {
+        String msg = e.getMessage() != null ? e.getMessage() : "Erreur interne";
+        // Log pour le dev console
+        System.err.println("[ExceptionHandler] " + e.getClass().getSimpleName() + ": " + msg);
+        return ResponseEntity.badRequest().body(Map.of("error", msg));
     }
 }

@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
-import { useAuthStore } from "../store/authStore.ts";
 import { useNotificationStore } from "../store/notificationStore.ts";
 import "../styles/lobby.css";
 
-interface Player {
+interface FriendshipDTO {
   id: number;
-  username: string;
-  elo: number;
-  wins: number;
-  losses: number;
+  requester: string;
+  addressee: string;
+  status: string;
+  friendUsername: string;
+  friendElo: number;
+  createdAt: string;
 }
 
 interface InvitationDTO {
@@ -21,193 +22,319 @@ interface InvitationDTO {
   gameId: number | null;
 }
 
-interface GameDTO {
+interface GameSummary {
   id: number;
   player1Username: string | null;
   player2Username: string | null;
   status: string;
 }
 
+// Helper pour extraire le message d'erreur du backend
+const errorMsg = (err: any, fallback: string) =>
+  err?.response?.data?.error || err?.response?.data?.message || fallback;
+
 export default function Lobby() {
   const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
 
-  // Notifications globales (depuis App.tsx via usePersonalWebSocket)
+  const [friends, setFriends]                 = useState<FriendshipDTO[]>([]);
+  const [friendRequests, setFriendRequests]   = useState<FriendshipDTO[]>([]);
+  const [sentRequests, setSentRequests]       = useState<FriendshipDTO[]>([]);
+  const [invitations, setInvitations]         = useState<InvitationDTO[]>([]);
+  const [ongoingGames, setOngoingGames]       = useState<GameSummary[]>([]);
+  const [searchPseudo, setSearchPseudo]       = useState("");
+  const [sentTo, setSentTo]                   = useState<Set<string>>(new Set());
+
   const notifications = useNotificationStore((s) => s.notifications);
 
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [invitations, setInvitations] = useState<InvitationDTO[]>([]);
-  const [ongoingGames, setOngoingGames] = useState<GameDTO[]>([]);
-  const [sentTo, setSentTo] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-
-  // ─── Chargement initial ────────────────────────────────────────────────────
-
+  const loadFriends = () =>
+    api.get<FriendshipDTO[]>("/friends").then((r) => setFriends(r.data)).catch(() => {});
+  const loadFriendRequests = () =>
+    api.get<FriendshipDTO[]>("/friends/requests").then((r) => setFriendRequests(r.data)).catch(() => {});
+  const loadSentRequests = () =>
+    api.get<FriendshipDTO[]>("/friends/requests/sent").then((r) => setSentRequests(r.data)).catch(() => {});
   const loadInvitations = () =>
-    api.get<InvitationDTO[]>("/invitation/pending")
-      .then((res) => setInvitations(res.data))
-      .catch(() => { });
-
+    api.get<InvitationDTO[]>("/invitation/pending").then((r) => setInvitations(r.data)).catch(() => {});
   const loadOngoing = () =>
-    api.get<GameDTO[]>("/game/ongoing")
-      .then((res) => setOngoingGames(res.data))
-      .catch(() => { });
+    api.get<GameSummary[]>("/game/ongoing").then((r) => setOngoingGames(r.data)).catch(() => {});
 
   useEffect(() => {
-    Promise.all([
-      api.get<Player[]>("/auth/all"),
-      api.get<InvitationDTO[]>("/invitation/pending"),
-      api.get<GameDTO[]>("/game/ongoing"),
-    ])
-      .then(([playersRes, invRes, ongoingRes]) => {
-        setPlayers(playersRes.data);
-        setInvitations(invRes.data);
-        setOngoingGames(ongoingRes.data);
-      })
-      .finally(() => setLoading(false));
+    loadFriends();
+    loadFriendRequests();
+    loadSentRequests();
+    loadInvitations();
+    loadOngoing();
   }, []);
 
-  // ─── Refresh quand une nouvelle notification "invitation" arrive ───────────
-  // (App.tsx reçoit les WS et alimente le notificationStore)
-
-  const invNotifCount = notifications.filter((n) => n.type === "invitation").length;
+  const friendNotifCount = notifications.filter(
+    (n) => n.type === "friend_request"
+        || n.type === "friend_accepted"
+        || n.type === "friend_declined"
+  ).length;
+  const invNotifCount = notifications.filter(
+    (n) => n.type === "invitation" || n.type === "declined"
+  ).length;
 
   useEffect(() => {
-    if (invNotifCount > 0) loadInvitations();
-  }, [invNotifCount]); // eslint-disable-line react-hooks/exhaustive-deps
+    loadFriends();
+    loadFriendRequests();
+    loadSentRequests();
+  }, [friendNotifCount]);
 
-  // ─── Handlers ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    loadInvitations();
+  }, [invNotifCount]);
 
-  const handleInvite = async (receiverUsername: string) => {
+  const handleSendFriendRequest = async () => {
+    const pseudo = searchPseudo.trim();
+    if (!pseudo) return;
+    try {
+      await api.post(`/friends/request?addressee=${encodeURIComponent(pseudo)}`);
+      setSearchPseudo("");
+      loadSentRequests();
+      alert(`Demande envoyée à ${pseudo}`);
+    } catch (err) {
+      alert(errorMsg(err, "Impossible d'envoyer la demande"));
+    }
+  };
+
+  const handleAcceptFriend = async (id: number) => {
+    try {
+      await api.post(`/friends/accept/${id}`);
+      loadFriends();
+      loadFriendRequests();
+    } catch (err) {
+      alert(errorMsg(err, "Erreur lors de l'acceptation"));
+      loadFriendRequests();
+    }
+  };
+
+  const handleDeclineFriend = async (id: number) => {
+    try {
+      await api.post(`/friends/decline/${id}`);
+      loadFriendRequests();
+    } catch (err) {
+      alert(errorMsg(err, "Erreur lors du refus"));
+      loadFriendRequests();
+    }
+  };
+
+  const handleCancelSentRequest = async (id: number) => {
+    if (!confirm("Annuler cette demande d'ami ?")) return;
+    try {
+      await api.delete(`/friends/requests/${id}`);
+      loadSentRequests();
+    } catch (err) {
+      alert(errorMsg(err, "Erreur lors de l'annulation"));
+    }
+  };
+
+  const handleRemoveFriend = async (username: string) => {
+    if (!confirm(`Retirer ${username} de vos amis ?`)) return;
+    try {
+      await api.delete(`/friends/${encodeURIComponent(username)}`);
+      loadFriends();
+    } catch (err) {
+      alert(errorMsg(err, "Erreur lors de la suppression"));
+    }
+  };
+
+  const handleInviteFriend = async (username: string) => {
     try {
       const res = await api.post<InvitationDTO>(
-        `/invitation/send?receiverUsername=${receiverUsername}`
+        `/invitation/send?receiverUsername=${encodeURIComponent(username)}`
       );
-
-      // Cross-invitation : si l'autre nous avait déjà invité, le backend a auto-accepté
-      // et nous renvoie l'invitation avec le gameId → on file directement à la partie
       if (res.data.gameId) {
         navigate(`/game/${res.data.gameId}`);
         return;
       }
-
-      // Sinon flux normal : on a juste envoyé l'invitation
-      setSentTo((prev) => new Set(prev).add(receiverUsername));
-    } catch {
-      alert("Impossible d'envoyer l'invitation.");
+      setSentTo((prev) => new Set(prev).add(username));
+    } catch (err) {
+      alert(errorMsg(err, "Impossible d'envoyer l'invitation"));
     }
   };
 
-  const handleAccept = async (inv: InvitationDTO) => {
+  const handleAcceptInvitation = async (inv: InvitationDTO) => {
     try {
-      const res = await api.post<InvitationDTO>(`/invitation/${inv.id}/accept`);
+      const res = await api.post<InvitationDTO>(`/invitation/accept/${inv.id}`);
       if (res.data.gameId) navigate(`/game/${res.data.gameId}`);
-    } catch {
-      alert("Erreur lors de l'acceptation.");
+    } catch (err) {
+      alert(errorMsg(err, "Erreur lors de l'acceptation"));
+      loadInvitations(); // resync au cas où l'invitation n'existe plus
     }
   };
 
-  const handleDecline = async (inv: InvitationDTO) => {
+  const handleDeclineInvitation = async (id: number) => {
     try {
-      await api.post(`/invitation/${inv.id}/decline`);
-      setInvitations((prev) => prev.filter((i) => i.id !== inv.id));
-    } catch {
-      alert("Erreur lors du refus.");
+      await api.post(`/invitation/decline/${id}`);
+      loadInvitations();
+    } catch (err) {
+      alert(errorMsg(err, "Erreur lors du refus"));
+      loadInvitations();
     }
   };
 
-  const otherPlayers = players.filter((p) => p.username !== user?.username);
-
-  // ─── Render ───────────────────────────────────────────────────────────────
-
-  if (loading) {
-    return (
-      <div className="lobby-container">
-        <p style={{ color: "#888" }}>Chargement...</p>
-      </div>
-    );
-  }
+  const pendingReceivedCount = friendRequests.length + invitations.length;
 
   return (
-    <div className="lobby-container">
-      <h1 className="lobby-title">Lobby</h1>
+    <div className="lobby-page">
+      <header className="lobby-header">
+        <h1>Lobby</h1>
+        <p className="lobby-subtitle">Retrouvez vos amis et lancez une partie</p>
+      </header>
 
-      {/* ── Invitations reçues ── */}
-      {invitations.length > 0 && (
-        <section className="lobby-section">
-          <h2>Invitations reçues</h2>
-          <div className="invitation-list">
-            {invitations.map((inv) => (
-              <div key={inv.id} className="invitation-card">
-                <span>
-                  <strong>{inv.senderUsername}</strong> vous invite à jouer
-                </span>
-                <div className="invitation-actions">
-                  <button className="btn-accept" onClick={() => handleAccept(inv)}>
-                    Accepter
-                  </button>
-                  <button className="btn-decline" onClick={() => handleDecline(inv)}>
-                    Refuser
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      <div className="lobby-grid">
+        <main className="lobby-main">
+          <section className="lobby-card">
+            <h2 className="lobby-card-title">
+              Mes amis
+              <span className="lobby-card-count">{friends.length}</span>
+            </h2>
 
-      {/* ── Parties en cours (reprendre) ── */}
-      {ongoingGames.length > 0 && (
-        <section className="lobby-section">
-          <h2>Parties en cours</h2>
-          <div className="player-list">
-            {ongoingGames.map((g) => (
-              <div key={g.id} className="player-card">
-                <div className="player-info">
-                  <span className="player-name">
-                    {g.player1Username ?? "?"} vs {g.player2Username ?? "?"}
-                  </span>
-                  <span className="player-stats">Partie #{g.id}</span>
-                </div>
-                <button
-                  className="btn-invite"
-                  onClick={() => navigate(`/game/${g.id}`)}
-                >
-                  Reprendre
-                </button>
+            {friends.length === 0 ? (
+              <div className="lobby-empty">
+                Pas encore d'amis. Ajoutez-en avec le formulaire à droite,
+                ou directement depuis une partie en cours.
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            ) : (
+              <ul className="lobby-items">
+                {friends.map((f) => (
+                  <li key={f.id} className="lobby-row">
+                    <div className="lobby-row-info">
+                      <span className="lobby-row-name">{f.friendUsername}</span>
+                      <span className="lobby-row-meta">ELO {f.friendElo}</span>
+                    </div>
+                    <div className="lobby-row-actions">
+                      <button
+                        className="btn-pill"
+                        onClick={() => handleInviteFriend(f.friendUsername)}
+                        disabled={sentTo.has(f.friendUsername)}
+                      >
+                        {sentTo.has(f.friendUsername) ? "Invité ✓" : "Inviter"}
+                      </button>
+                      <button
+                        className="btn-square danger"
+                        onClick={() => handleRemoveFriend(f.friendUsername)}
+                        title="Retirer des amis"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
-      {/* ── Liste des joueurs ── */}
-      <section className="lobby-section">
-        <h2>Joueurs ({otherPlayers.length})</h2>
-        {otherPlayers.length === 0 ? (
-          <p className="lobby-empty">Aucun autre joueur inscrit pour l'instant.</p>
-        ) : (
-          <div className="player-list">
-            {otherPlayers.map((p) => (
-              <div key={p.id} className="player-card">
-                <div className="player-info">
-                  <span className="player-name">{p.username}</span>
-                  <span className="player-stats">
-                    ELO {p.elo} · {p.wins}V {p.losses}D
-                  </span>
-                </div>
-                <button
-                  className={`btn-invite ${sentTo.has(p.username) ? "sent" : ""}`}
-                  onClick={() => handleInvite(p.username)}
-                  disabled={sentTo.has(p.username)}
-                >
-                  {sentTo.has(p.username) ? "Invitation envoyée" : "Inviter"}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+          {ongoingGames.length > 0 && (
+            <section className="lobby-card">
+              <h2 className="lobby-card-title">
+                Parties en cours
+                <span className="lobby-card-count">{ongoingGames.length}</span>
+              </h2>
+              <ul className="lobby-items">
+                {ongoingGames.map((g) => (
+                  <li key={g.id} className="lobby-row">
+                    <div className="lobby-row-info">
+                      <span className="lobby-row-name">
+                        {g.player1Username} <span className="lobby-vs">vs</span> {g.player2Username ?? "?"}
+                      </span>
+                      <span className="lobby-row-meta">En cours</span>
+                    </div>
+                    <button className="btn-pill" onClick={() => navigate(`/game/${g.id}`)}>
+                      Reprendre
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </main>
+
+        <aside className="lobby-sidebar">
+          <section className="lobby-card">
+            <h2 className="lobby-card-title">Ajouter un ami</h2>
+            <div className="lobby-form">
+              <input
+                className="lobby-input"
+                type="text"
+                value={searchPseudo}
+                onChange={(e) => setSearchPseudo(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendFriendRequest()}
+                placeholder="Pseudo..."
+              />
+              <button
+                className="btn-block"
+                onClick={handleSendFriendRequest}
+                disabled={!searchPseudo.trim()}
+              >
+                Envoyer la demande
+              </button>
+            </div>
+          </section>
+
+          {pendingReceivedCount > 0 && (
+            <section className="lobby-card">
+              <h2 className="lobby-card-title">
+                En attente
+                <span className="lobby-card-count">{pendingReceivedCount}</span>
+              </h2>
+              <ul className="lobby-items">
+                {invitations.map((inv) => (
+                  <li key={`inv-${inv.id}`} className="lobby-row pending pending-game">
+                    <div className="lobby-row-info">
+                      <span className="lobby-row-name">{inv.senderUsername}</span>
+                      <span className="lobby-row-meta">Invitation à jouer</span>
+                    </div>
+                    <div className="lobby-row-actions">
+                      <button className="btn-square accept" title="Accepter" onClick={() => handleAcceptInvitation(inv)}>✓</button>
+                      <button className="btn-square danger" title="Refuser" onClick={() => handleDeclineInvitation(inv.id)}>✕</button>
+                    </div>
+                  </li>
+                ))}
+
+                {friendRequests.map((f) => (
+                  <li key={`fr-${f.id}`} className="lobby-row pending pending-friend">
+                    <div className="lobby-row-info">
+                      <span className="lobby-row-name">{f.requester}</span>
+                      <span className="lobby-row-meta">Demande d'ami</span>
+                    </div>
+                    <div className="lobby-row-actions">
+                      <button className="btn-square accept" title="Accepter" onClick={() => handleAcceptFriend(f.id)}>✓</button>
+                      <button className="btn-square danger" title="Refuser" onClick={() => handleDeclineFriend(f.id)}>✕</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {sentRequests.length > 0 && (
+            <section className="lobby-card">
+              <h2 className="lobby-card-title">
+                Demandes envoyées
+                <span className="lobby-card-count">{sentRequests.length}</span>
+              </h2>
+              <ul className="lobby-items">
+                {sentRequests.map((f) => (
+                  <li key={`sent-${f.id}`} className="lobby-row sent">
+                    <div className="lobby-row-info">
+                      <span className="lobby-row-name">{f.addressee}</span>
+                      <span className="lobby-row-meta">En attente de réponse</span>
+                    </div>
+                    <button
+                      className="btn-square danger"
+                      title="Annuler la demande"
+                      onClick={() => handleCancelSentRequest(f.id)}
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </aside>
+      </div>
     </div>
   );
 }

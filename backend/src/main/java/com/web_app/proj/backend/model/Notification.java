@@ -1,7 +1,18 @@
 package com.web_app.proj.backend.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "notifications")
@@ -28,6 +39,9 @@ public class Notification {
     @Column(name = "invitation_id")
     private Long invitationId;
 
+    @Column(name = "friendship_id")
+    private Long friendshipId;
+
     @Column(name = "from_username", length = 64)
     private String fromUsername;
 
@@ -48,6 +62,8 @@ public class Notification {
     public void setGameId(Long gameId) { this.gameId = gameId; }
     public Long getInvitationId() { return invitationId; }
     public void setInvitationId(Long invitationId) { this.invitationId = invitationId; }
+    public Long getFriendshipId() { return friendshipId; }
+    public void setFriendshipId(Long friendshipId) { this.friendshipId = friendshipId; }
     public String getFromUsername() { return fromUsername; }
     public void setFromUsername(String fromUsername) { this.fromUsername = fromUsername; }
     public LocalDateTime getCreatedAt() { return createdAt; }

@@ -1,148 +1,283 @@
-.lobby-container {
-  max-width: 720px;
-  margin: 40px auto;
-  padding: 0 20px 80px;
-  color: #e5e5e5;
-  font-family: Inter, sans-serif;
+/* ─── src/styles/lobby.css — remplace l'ancien contenu ─── */
+
+.lobby-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  color: #e0e0e0;
 }
 
-.lobby-title {
-  font-size: 36px;
+/* Header */
+.lobby-header {
+  margin-bottom: 28px;
+}
+
+.lobby-header h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
   font-weight: 700;
-  margin-bottom: 32px;
+  letter-spacing: -0.5px;
 }
 
-.lobby-section {
-  margin-bottom: 40px;
+.lobby-subtitle {
+  margin: 0;
+  color: #888;
+  font-size: 14px;
 }
 
-.lobby-section h2 {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: #aaa;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 13px;
+/* Grid principal */
+.lobby-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
 }
 
-.lobby-empty {
-  opacity: 0.5;
-  font-style: italic;
+@media (max-width: 900px) {
+  .lobby-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* Joueurs */
-.player-list {
+.lobby-main,
+.lobby-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
+  min-width: 0;
 }
 
-.player-card {
+/* Cartes */
+.lobby-card {
+  background: #161616;
+  border: 1px solid #262626;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.lobby-card-title {
+  margin: 0 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #aaa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lobby-card-count {
+  background: #262626;
+  color: #888;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Listes */
+.lobby-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lobby-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #1c1c1c;
-  border: 1px solid #333;
-  border-radius: 10px;
-  padding: 14px 18px;
-  transition: border-color 0.2s;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #1e1e1e;
+  border: 1px solid transparent;
+  transition: all 0.18s;
+  min-width: 0;
 }
 
-.player-card:hover {
-  border-color: #4da3ff;
+.lobby-row:hover {
+  background: #232323;
+  border-color: #2e2e2e;
 }
 
-.player-info {
+.lobby-row.pending {
+  background: #1a1f2e;
+  border-color: #2a3145;
+}
+
+.lobby-row.pending-friend {
+  background: #1f1a2e;
+  border-color: #2f2a45;
+}
+
+.lobby-row-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 
-.player-name {
+.lobby-row-name {
+  color: #e5e5e5;
   font-weight: 600;
-  font-size: 16px;
-}
-
-.player-stats {
-  font-size: 13px;
-  opacity: 0.55;
-}
-
-.btn-invite {
-  padding: 8px 20px;
-  border-radius: 8px;
-  border: none;
-  background: #4da3ff;
-  color: white;
   font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s;
-  font-family: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.btn-invite:hover:not(:disabled) {
-  background: #6bb4ff;
+.lobby-row-meta {
+  color: #888;
+  font-size: 12px;
 }
 
-.btn-invite.sent,
-.btn-invite:disabled {
+.lobby-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.lobby-vs {
+  color: #666;
+  font-weight: 400;
+  font-size: 12px;
+  margin: 0 4px;
+}
+
+/* Empty state */
+.lobby-empty {
+  text-align: center;
+  padding: 28px 16px;
+  color: #666;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* Boutons */
+.btn-pill {
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: none;
+  background: #4da3ff;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.btn-pill:hover:not(:disabled) {
+  background: #3a8fef;
+}
+
+.btn-pill:disabled {
   background: #2a2a2a;
   color: #666;
-  border: 1px solid #444;
   cursor: default;
 }
 
-/* Invitations reçues */
-.invitation-list {
+.btn-square {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  border: 1px solid #333;
+  background: transparent;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.18s;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.btn-square:hover {
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+.btn-square.accept:hover {
+  border-color: #2e7d32;
+  color: #66bb6a;
+  background: #18241a;
+}
+
+.btn-square.danger:hover {
+  border-color: #5a2a2a;
+  color: #e57373;
+  background: #261818;
+}
+
+.btn-block {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #4da3ff;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.btn-block:hover:not(:disabled) {
+  background: #3a8fef;
+}
+
+.btn-block:disabled {
+  background: #1e1e1e;
+  color: #555;
+  cursor: not-allowed;
+}
+
+/* Formulaire ajouter ami */
+.lobby-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.invitation-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #1c1c2e;
-  border: 1px solid #4da3ff55;
-  border-radius: 10px;
-  padding: 14px 18px;
-  gap: 16px;
-  animation: slide-up 0.2s ease-out;
-}
-
-.invitation-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.btn-accept {
-  padding: 7px 16px;
-  border-radius: 7px;
-  border: none;
-  background: #4da3ff;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s;
-  font-family: inherit;
-}
-
-.btn-accept:hover { background: #6bb4ff; }
-
-.btn-decline {
-  padding: 7px 16px;
-  border-radius: 7px;
-  border: 1px solid #555;
-  background: transparent;
+.lobby-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #2e2e2e;
+  background: #0e0e0e;
   color: #e5e5e5;
-  font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s;
   font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition: 0.2s;
 }
 
-.btn-decline:hover { background: #2a2a2a; }
+.lobby-input:focus {
+  border-color: #4da3ff;
+}
+
+.lobby-input::placeholder {
+  color: #555;
+}
+
+.lobby-row.sent {
+  background: #1e1c14;
+  border-color: #3a3520;
+}
+
+.lobby-row.sent .lobby-row-meta {
+  color: #a89968;
+}
