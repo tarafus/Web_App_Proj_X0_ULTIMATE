@@ -2,7 +2,6 @@ package com.web_app.proj.backend.controller;
 
 import java.util.Map;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,7 +11,7 @@ import com.web_app.proj.backend.service.MatchmakingService;
 
 @RestController
 @RequestMapping("/matchmaking")
-@CrossOrigin(origins = "http://localhost:5173")
+// @CrossOrigin(origins = "http://localhost:5173")
 public class MatchmakingController {
 
     private final MatchmakingService matchmakingService;

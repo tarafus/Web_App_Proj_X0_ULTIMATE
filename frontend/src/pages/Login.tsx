@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
 import { authApi } from "../api/authApi.ts";
 import { useAuthStore } from "../store/authStore.ts";
+import { showToast } from "../utils/toast.ts";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export default function Login() {
       navigate("/");
     } catch (err) {
       console.error("Erreur login:", err);
-      alert("Identifiants invalides");
+      showToast("Identifiants invalides");
     }
   }
 

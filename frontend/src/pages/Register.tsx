@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../styles/auth.css";
 import { authApi } from "../api/authApi.ts";
 import { useAuthStore } from "../store/authStore.ts";
+import { showToast } from "../utils/toast.ts";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -33,9 +34,9 @@ export default function Register() {
       console.error("Erreur register:", err);
       if (err.response?.status === 400) {
         // Le backend renvoie "Username already taken"
-        alert(err.response.data);
+        showToast(err.response.data);
       } else {
-        alert("Erreur lors de l'inscription");
+        showToast("Erreur lors de l'inscription");
       }
     }
   }

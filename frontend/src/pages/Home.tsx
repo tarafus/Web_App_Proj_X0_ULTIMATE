@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/authStore.ts";
 import { usePersonalWebSocket } from "../hooks/usePersonalWebSocket.ts";
 import "../styles/home.css";
 import React, { useState } from "react";
+import { showToast } from "../utils/toast.ts";
 
 type MatchmakingState = "idle" | "waiting";
 
@@ -27,7 +28,7 @@ export default function Home() {
       // Si quelqu'un attendait déjà → [MATCHED] arrivera par WS, pas besoin de gérer ici
       if (res.data.status === "waiting") setMmState("waiting");
     } catch {
-      alert("Impossible de rejoindre la file d'attente.");
+      showToast("Impossible de rejoindre la file d'attente.");
     }
   };
 

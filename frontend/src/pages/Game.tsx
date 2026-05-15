@@ -9,6 +9,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
 import { useGameWebSocket } from "../hooks/useGameWebSocket.ts";
 import "../styles/game.css";
+import { showToast } from "../utils/toast.ts";
 
 interface GameInfo {
   id: number;
@@ -27,43 +28,53 @@ export default function Game() {
   const gameId = Number(id);
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const login = useAuthStore((s) => s.login);
+  const token = useAuthStore((s) => s.token);
 
   const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
   const [mySymbol, setMySymbol] = useState<"X" | "O" | null>(null);
-  const [error, setError]       = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const [rematchState, setRematchState]         = useState<RematchState>("idle");
+  const [rematchState, setRematchState] = useState<RematchState>("idle");
   const [rematchRequester, setRematchRequester] = useState<string | null>(null);
   const rematchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [opponentLeft, setOpponentLeft] = useState(false);
-  const [pingDone, setPingDone]         = useState(false);
-  const [abandonedBy, setAbandonedBy]   = useState<string | null>(null);
+  const [pingDone, setPingDone] = useState(false);
+  const [abandonedBy, setAbandonedBy] = useState<string | null>(null);
   const [confirmAbandon, setConfirmAbandon] = useState(false);
 
   const [friendStatus, setFriendStatus] = useState<FriendStatus>("NONE");
 
-  const joinSentRef     = useRef(false);
+  const joinSentRef = useRef(false);
   const globalWinnerRef = useRef<string | null>(null);
 
   const currentPlayer = useGameStore((s) => s.currentPlayer);
-  const globalWinner  = useGameStore((s) => s.globalWinner);
+  const globalWinner = useGameStore((s) => s.globalWinner);
 
-  const setBoard          = useGameStore((s) => s.setState);
-  const setSubWinners     = useGameStore((s) => s.setSubWinners);
-  const setCurrentPlayer  = useGameStore((s) => s.setCurrentPlayer);
-  const setGlobalWinner   = useGameStore((s) => s.setGlobalWinner);
+  const setBoard = useGameStore((s) => s.setState);
+  const setSubWinners = useGameStore((s) => s.setSubWinners);
+  const setCurrentPlayer = useGameStore((s) => s.setCurrentPlayer);
+  const setGlobalWinner = useGameStore((s) => s.setGlobalWinner);
   const setActiveSubBoard = useGameStore((s) => s.setActiveSubBoard);
-  const resetGameStore    = useGameStore((s) => s.reset);
+  const resetGameStore = useGameStore((s) => s.reset);
 
   const setChatMessages = useChatStore((s) => s.setMessages);
-  const addChatMessage  = useChatStore((s) => s.addMessage);
-  const clearChat       = useChatStore((s) => s.clear);
+  const addChatMessage = useChatStore((s) => s.addMessage);
+  const clearChat = useChatStore((s) => s.clear);
 
-  const chatOpen   = useUIStore((s) => s.chatOpen);
+  const chatOpen = useUIStore((s) => s.chatOpen);
   const toggleChat = useUIStore((s) => s.toggleChat);
 
   useEffect(() => { globalWinnerRef.current = globalWinner; }, [globalWinner]);
+
+  // Quand la partie se termine, refetch l'user pour récupérer le nouvel ELO
+  useEffect(() => {
+    if (!globalWinner || !token) return;
+    api.get("/auth/me")
+      .then((res) => login(token, res.data))
+      .catch(() => { });
+  }, [globalWinner]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setGameInfo(null);
@@ -91,24 +102,24 @@ export default function Game() {
   } = useGameWebSocket(
     gameId,
     (state) => {
-      if (state.board)                       setBoard(state.board);
-      if (state.subWinners)                  setSubWinners(state.subWinners);
+      if (state.board) setBoard(state.board);
+      if (state.subWinners) setSubWinners(state.subWinners);
       if (state.currentPlayer !== undefined) setCurrentPlayer(state.currentPlayer);
-      if (state.globalWinner  !== undefined) setGlobalWinner(state.globalWinner);
+      if (state.globalWinner !== undefined) setGlobalWinner(state.globalWinner);
       if (state.activeSubBoard !== undefined) setActiveSubBoard(state.activeSubBoard);
     },
     (msg) => {
       if (msg.startsWith("[JOIN]")) {
-        api.get(`/game/${gameId}`).then((res) => setGameInfo(res.data)).catch(() => {});
+        api.get(`/game/${gameId}`).then((res) => setGameInfo(res.data)).catch(() => { });
       } else if (msg.startsWith("[PLAYER_LEFT]")) {
         const who = msg.substring("[PLAYER_LEFT] ".length).trim();
-        const me  = useAuthStore.getState().user?.username;
+        const me = useAuthStore.getState().user?.username;
         if (who && me && who !== me) setOpponentLeft(true);
       } else if (msg.startsWith("[ABANDON]")) {
         setAbandonedBy(msg.substring("[ABANDON] ".length).trim());
       } else if (msg.startsWith("[REMATCH_REQUEST]")) {
         const other = msg.substring("[REMATCH_REQUEST] ".length).trim();
-        const me    = useAuthStore.getState().user?.username;
+        const me = useAuthStore.getState().user?.username;
         if (other && me && other !== me) {
           setRematchState("received");
           setRematchRequester(other);
@@ -147,7 +158,7 @@ export default function Game() {
       .then((res) => {
         const info: GameInfo = res.data;
         setGameInfo(info);
-        if      (info.player1Id === user.id) setMySymbol("X");
+        if (info.player1Id === user.id) setMySymbol("X");
         else if (info.player2Id === user.id) setMySymbol("O");
       })
       .catch((err) => {
@@ -161,10 +172,10 @@ export default function Game() {
     api.get(`/game/${gameId}/state`)
       .then((res) => {
         const s = res.data;
-        if (s.board)                       setBoard(s.board);
-        if (s.subWinners)                  setSubWinners(s.subWinners);
+        if (s.board) setBoard(s.board);
+        if (s.subWinners) setSubWinners(s.subWinners);
         if (s.currentPlayer !== undefined) setCurrentPlayer(s.currentPlayer);
-        if (s.globalWinner  !== undefined) setGlobalWinner(s.globalWinner);
+        if (s.globalWinner !== undefined) setGlobalWinner(s.globalWinner);
         if (s.activeSubBoard !== undefined) setActiveSubBoard(s.activeSubBoard);
       })
       .catch((e) => console.error("Erreur GET state:", e));
@@ -174,7 +185,7 @@ export default function Game() {
     if (!gameInfo) return;
     api.get<ChatMessage[]>(`/game/${gameId}/messages`)
       .then((res) => setChatMessages(res.data))
-      .catch(() => {});
+      .catch(() => { });
   }, [gameInfo, gameId]);
 
   useEffect(() => {
@@ -195,7 +206,7 @@ export default function Game() {
 
     api.get<{ status: FriendStatus }>(`/friends/status/${encodeURIComponent(opponent)}`)
       .then((res) => setFriendStatus(res.data.status))
-      .catch(() => {});
+      .catch(() => { });
   }, [gameInfo, user]);
 
   const handleMove = (move: { sub: number; cell: number }) => {
@@ -239,7 +250,7 @@ export default function Game() {
         setFriendStatus("PENDING_SENT");
       }
     } catch {
-      alert("Erreur lors de l'ajout en ami.");
+      showToast("Erreur lors de l'ajout en ami.");
     }
   };
 
@@ -256,7 +267,7 @@ export default function Game() {
     setRematchState("sent");
     rematchTimeoutRef.current = setTimeout(() => {
       setRematchState("idle");
-      alert("L'adversaire n'a pas répondu.");
+      showToast("L'adversaire n'a pas répondu.");
     }, 15000);
   };
 
@@ -276,7 +287,7 @@ export default function Game() {
   };
 
   const handlePing = async () => {
-    await api.post(`/game/${gameId}/ping`).catch(() => {});
+    await api.post(`/game/${gameId}/ping`).catch(() => { });
     setPingDone(true);
   };
 
@@ -310,10 +321,10 @@ export default function Game() {
 
   // Texte du bouton d'amitié
   const friendBtnLabel =
-    friendStatus === "FRIENDS"          ? "Déjà amis ✓"
-    : friendStatus === "PENDING_SENT"   ? "Demande envoyée"
-    : friendStatus === "PENDING_RECEIVED" ? "Accepter sa demande d'ami"
-    : "Ajouter en ami";
+    friendStatus === "FRIENDS" ? "Déjà amis ✓"
+      : friendStatus === "PENDING_SENT" ? "Demande envoyée"
+        : friendStatus === "PENDING_RECEIVED" ? "Accepter sa demande d'ami"
+          : "Ajouter en ami";
 
   const friendBtnDisabled =
     friendStatus === "FRIENDS" || friendStatus === "PENDING_SENT" || friendStatus === "SELF";
@@ -352,7 +363,9 @@ export default function Game() {
           <p style={{ color: "#888" }}>En attente d'un second joueur...</p>
         ) : globalWinner ? (
           <>
-            <h2 className="winner-banner">Le joueur {globalWinner} a gagné la partie !</h2>
+            <h2 className="winner-banner">
+              {(globalWinner === "X" ? gameInfo.player1Username : gameInfo.player2Username) ?? `Joueur ${globalWinner}`} a gagné la partie !
+            </h2>
             {abandonedBy && (
               <p style={{ color: "#888", textAlign: "center", marginTop: 4, fontSize: 14 }}>
                 ({abandonedBy} a abandonné)

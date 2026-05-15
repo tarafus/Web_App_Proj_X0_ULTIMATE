@@ -1,15 +1,20 @@
 package com.web_app.proj.backend.service;
 
-import com.web_app.proj.backend.dto.InvitationDTO;
-import com.web_app.proj.backend.mapper.InvitationMapper;
-import com.web_app.proj.backend.model.*;
-import com.web_app.proj.backend.repository.InvitationRepository;
-import com.web_app.proj.backend.repository.UserRepository;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.web_app.proj.backend.dto.InvitationDTO;
+import com.web_app.proj.backend.mapper.InvitationMapper;
+import com.web_app.proj.backend.model.Game;
+import com.web_app.proj.backend.model.Invitation;
+import com.web_app.proj.backend.model.InvitationStatus;
+import com.web_app.proj.backend.model.NotificationType;
+import com.web_app.proj.backend.model.User;
+import com.web_app.proj.backend.repository.InvitationRepository;
+import com.web_app.proj.backend.repository.UserRepository;
 
 @Service
 public class InvitationService {
@@ -43,14 +48,16 @@ public class InvitationService {
 
         // 1. Cross-invitation : si receiver nous a déjà invité → auto-accept
         Optional<Invitation> reverseInv = invitationRepository
-                .findBySenderAndReceiverAndStatus(receiver, sender, InvitationStatus.PENDING);
+                .findFirstBySenderAndReceiverAndStatusOrderByIdDesc(
+                        receiver, sender, InvitationStatus.PENDING);
         if (reverseInv.isPresent()) {
             return accept(reverseInv.get().getId(), senderUsername);
         }
 
         // 2. Anti-spam : empêcher d'envoyer plusieurs invitations à la même personne
         Optional<Invitation> forwardInv = invitationRepository
-                .findBySenderAndReceiverAndStatus(sender, receiver, InvitationStatus.PENDING);
+                .findFirstBySenderAndReceiverAndStatusOrderByIdDesc(
+                        sender, receiver, InvitationStatus.PENDING);
         if (forwardInv.isPresent()) {
             throw new RuntimeException("Vous avez déjà invité ce joueur");
         }

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
 import { useNotificationStore } from "../store/notificationStore.ts";
 import "../styles/lobby.css";
+import { showToast } from "../utils/toast.ts";
 
 interface FriendshipDTO {
   id: number;
@@ -91,9 +92,9 @@ export default function Lobby() {
       await api.post(`/friends/request?addressee=${encodeURIComponent(pseudo)}`);
       setSearchPseudo("");
       loadSentRequests();
-      alert(`Demande envoyée à ${pseudo}`);
+      showToast(`Demande envoyée à ${pseudo}`);
     } catch (err) {
-      alert(errorMsg(err, "Impossible d'envoyer la demande"));
+      showToast(errorMsg(err, "Impossible d'envoyer la demande"));
     }
   };
 
@@ -103,7 +104,7 @@ export default function Lobby() {
       loadFriends();
       loadFriendRequests();
     } catch (err) {
-      alert(errorMsg(err, "Erreur lors de l'acceptation"));
+      showToast(errorMsg(err, "Erreur lors de l'acceptation"));
       loadFriendRequests();
     }
   };
@@ -113,7 +114,7 @@ export default function Lobby() {
       await api.post(`/friends/decline/${id}`);
       loadFriendRequests();
     } catch (err) {
-      alert(errorMsg(err, "Erreur lors du refus"));
+      showToast(errorMsg(err, "Erreur lors du refus"));
       loadFriendRequests();
     }
   };
@@ -124,7 +125,7 @@ export default function Lobby() {
       await api.delete(`/friends/requests/${id}`);
       loadSentRequests();
     } catch (err) {
-      alert(errorMsg(err, "Erreur lors de l'annulation"));
+      showToast(errorMsg(err, "Erreur lors de l'annulation"));
     }
   };
 
@@ -134,7 +135,7 @@ export default function Lobby() {
       await api.delete(`/friends/${encodeURIComponent(username)}`);
       loadFriends();
     } catch (err) {
-      alert(errorMsg(err, "Erreur lors de la suppression"));
+      showToast(errorMsg(err, "Erreur lors de la suppression"));
     }
   };
 
@@ -149,7 +150,7 @@ export default function Lobby() {
       }
       setSentTo((prev) => new Set(prev).add(username));
     } catch (err) {
-      alert(errorMsg(err, "Impossible d'envoyer l'invitation"));
+      showToast(errorMsg(err, "Impossible d'envoyer l'invitation"));
     }
   };
 
@@ -158,7 +159,7 @@ export default function Lobby() {
       const res = await api.post<InvitationDTO>(`/invitation/accept/${inv.id}`);
       if (res.data.gameId) navigate(`/game/${res.data.gameId}`);
     } catch (err) {
-      alert(errorMsg(err, "Erreur lors de l'acceptation"));
+      showToast(errorMsg(err, "Erreur lors de l'acceptation"));
       loadInvitations(); // resync au cas où l'invitation n'existe plus
     }
   };
@@ -168,7 +169,7 @@ export default function Lobby() {
       await api.post(`/invitation/decline/${id}`);
       loadInvitations();
     } catch (err) {
-      alert(errorMsg(err, "Erreur lors du refus"));
+      showToast(errorMsg(err, "Erreur lors du refus"));
       loadInvitations();
     }
   };

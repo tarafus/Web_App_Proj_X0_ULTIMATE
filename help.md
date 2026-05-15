@@ -21,6 +21,18 @@ docker exec -it nom_du_container psql -U postgres
 - \l (lister les BD)
 - \c nom_de_la_base (aller sur la BD pour pouvoir y executer des commandes SQL)
 
+### Arrêter et supprimer tout (conteneurs + volumes = BDD effacée)
+docker-compose down -v
+
+### Reconstruire toutes les images sans cache
+docker-compose build --no-cache
+
+### Relancer
+docker-compose up -d
+
+### Suivre les logs pour vérifier
+docker-compose logs -f backend
+
 ### Effacer tout dans une table et dans les tables dépendantes
 TRUNCATE ma_table RESTART IDENTITY CASCADE;
 

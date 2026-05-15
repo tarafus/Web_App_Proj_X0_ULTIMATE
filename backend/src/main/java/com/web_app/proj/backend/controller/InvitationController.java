@@ -2,7 +2,6 @@ package com.web_app.proj.backend.controller;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +15,6 @@ import com.web_app.proj.backend.service.InvitationService;
 
 @RestController
 @RequestMapping("/invitation")
-@CrossOrigin(origins = "http://localhost:5173")
 public class InvitationController {
 
     private final InvitationService invitationService;
@@ -27,19 +25,19 @@ public class InvitationController {
 
     @PostMapping("/send")
     public InvitationDTO send(@RequestAttribute("username") String sender,
-                               @RequestParam String receiverUsername) {
+                              @RequestParam String receiverUsername) {
         return invitationService.send(sender, receiverUsername);
     }
 
-    @PostMapping("/{id}/accept")
+    @PostMapping("/accept/{id}")
     public InvitationDTO accept(@PathVariable Long id,
-                                 @RequestAttribute("username") String username) {
+                                @RequestAttribute("username") String username) {
         return invitationService.accept(id, username);
     }
 
-    @PostMapping("/{id}/decline")
+    @PostMapping("/decline/{id}")
     public void decline(@PathVariable Long id,
-                         @RequestAttribute("username") String username) {
+                        @RequestAttribute("username") String username) {
         invitationService.decline(id, username);
     }
 

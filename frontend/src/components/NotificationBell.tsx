@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotificationStore } from "../store/notificationStore.ts";
 import { api } from "../api/api.ts";
+import { showToast } from "../utils/toast.ts";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -39,7 +40,7 @@ export default function NotificationBell() {
           dismiss(n.id);
           setOpen(false);
         })
-        .catch(() => alert("Erreur lors de l'acceptation."));
+        .catch(() => showToast("Erreur lors de l'acceptation."));
     } else if (n.gameId) {
       navigate(`/game/${n.gameId}`);
       dismiss(n.id);

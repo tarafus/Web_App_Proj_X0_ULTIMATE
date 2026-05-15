@@ -33,13 +33,12 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // IMPORTANT : autoriser les endpoints du jeu
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/login**",
                                 "/auth/register**",
                                 "/auth/all",
-                                "/auth/me",
+                                "/auth/me/**",  // ← couvre /auth/me ET /auth/me/history
                                 "/ws/**",
                                 "/game/**",
                                 "/topic/**",
@@ -47,9 +46,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                
 
-                // IMPORTANT : ne pas filtrer les WebSockets
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
