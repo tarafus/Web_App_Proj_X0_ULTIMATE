@@ -11,7 +11,6 @@
     left: 0;
     z-index: 100;
     box-sizing: border-box;
-    /* important */
 }
 
 
@@ -49,7 +48,42 @@
     transition: 0.2s;
 }
 
-.nav-btn:hover {
-    background: #4da3ff;
-    color: #111;
+/* ───────── Responsive ───────── */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 12px 16px;
+    }
+    .nav-logo {
+        font-size: 18px;
+    }
+    .nav-right {
+        gap: 14px;
+    }
+    .nav-link {
+        font-size: 14px;
+    }
+    .nav-btn {
+        padding: 6px 14px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+    .nav-logo {
+        font-size: 15px;
+    }
+    .nav-right {
+        gap: 10px;
+    }
+    .nav-link {
+        font-size: 12px;
+    }
+    .nav-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
 }

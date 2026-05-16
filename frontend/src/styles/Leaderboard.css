@@ -38,3 +38,34 @@
 .leaderboard-table tr:hover {
     background: #2a2a2a;
 }
+
+/* ───────── Responsive ───────── */
+@media (max-width: 768px) {
+    .leaderboard-container {
+        margin: 30px auto;
+        padding: 14px;
+    }
+    .leaderboard-container h1 {
+        font-size: 26px;
+        margin-bottom: 24px;
+    }
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .leaderboard-container {
+        padding: 10px;
+    }
+    .leaderboard-container h1 {
+        font-size: 22px;
+    }
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+}

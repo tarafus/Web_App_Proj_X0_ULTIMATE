@@ -63,3 +63,34 @@
 .auth-switch a:hover {
     text-decoration: underline;
 }
+
+/* ───────── Responsive ───────── */
+@media (max-width: 768px) {
+    .auth-container {
+        margin: 50px 16px;
+        padding: 28px 20px;
+        max-width: none;
+    }
+    .auth-container h1 {
+        font-size: 26px;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-container {
+        margin: 30px 12px;
+        padding: 24px 18px;
+    }
+    .auth-container h1 {
+        font-size: 22px;
+    }
+    .auth-form input {
+        font-size: 15px;
+        padding: 10px;
+    }
+    .btn-primary {
+        font-size: 16px;
+        padding: 10px;
+    }
+}

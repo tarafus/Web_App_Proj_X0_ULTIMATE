@@ -62,6 +62,7 @@
     border: 1px solid #333;
     border-radius: 12px;
     overflow: hidden;
+    table-layout: auto;
 }
 
 .history-table th {
@@ -78,4 +79,75 @@
 
 .history-table tr:hover {
     background: #2a2a2a;
+}
+
+/* ───────── Responsive ───────── */
+@media (max-width: 768px) {
+    .profile-container {
+        margin: 30px auto;
+        padding: 16px;
+    }
+    .profile-container h1 {
+        font-size: 28px;
+        margin-bottom: 24px;
+    }
+    .profile-card {
+        padding: 24px 18px;
+        margin-bottom: 32px;
+    }
+    .profile-card h2 {
+        font-size: 22px;
+    }
+    .elo {
+        font-size: 18px;
+    }
+    .stats {
+        gap: 24px;
+    }
+    .stat-number {
+        font-size: 24px;
+    }
+    .history-title {
+        font-size: 22px;
+    }
+    .history-table th,
+    .history-table td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-container {
+        margin: 20px auto;
+        padding: 12px;
+    }
+    .profile-container h1 {
+        font-size: 24px;
+    }
+    .profile-card {
+        padding: 20px 14px;
+    }
+    .history-title {
+        font-size: 20px;
+    }
+
+    /* Table : pas de scroll horizontal, on fait tenir naturellement */
+    .history-table {
+        font-size: 11px;
+        word-break: break-word;
+    }
+
+    .history-table th,
+    .history-table td {
+        padding: 6px 4px;
+        font-size: 11px;
+    }
+
+    /* Masque la colonne « ELO after » (5e) sur petit écran
+       — l'info principale reste dans « ELO change » */
+    .history-table th:nth-child(5),
+    .history-table td:nth-child(5) {
+        display: none;
+    }
 }

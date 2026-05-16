@@ -1,4 +1,4 @@
-/* --- Layout global : plateau à gauche, chat à droite --- */
+/* --- Global layout: board on the left, chat on the right --- */
 .game-page {
   display: flex;
   justify-content: center;
@@ -8,18 +8,18 @@
   font-family: Inter, sans-serif;
 }
 
-/* Zone gauche : infos + plateau */
+/* Left zone: info + board */
 .game-left {
   flex-shrink: 0;
   text-align: center;
 }
 
-/* Zone droite : chat */
+/* Right zone: chat */
 .game-right {
-  width: 300px; /* largeur fixe du chat */
+  width: 300px;
 }
 
-/* --- Bannière de victoire --- */
+/* --- Winner banner --- */
 .winner-banner {
   font-size: 32px;
   margin-top: 20px;
@@ -27,7 +27,7 @@
   color: #4da3ff;
 }
 
-/* --- Bouton reset --- */
+/* --- Reset / rematch button --- */
 .reset-btn {
   margin-top: 20px;
   padding: 12px 24px;
@@ -45,7 +45,7 @@
   background: #6bb6ff;
 }
 
-/* --- Plateau 9x9 --- */
+/* --- 9x9 board --- */
 .board {
   display: grid;
   grid-template-columns: repeat(3, auto);
@@ -57,7 +57,7 @@
   box-shadow: 0 0 20px rgba(0,0,0,0.4);
 }
 
-/* --- Sous-grille 3x3 --- */
+/* --- 3x3 sub-grid --- */
 .subboard {
   display: grid;
   grid-template-columns: repeat(3, 60px);
@@ -67,7 +67,7 @@
   overflow: hidden;
   background: #222;
   transition: border-color 0.2s ease;
-  position: relative; /* nécessaire pour l’overlay */
+  position: relative;
 }
 
 .subboard:hover {
@@ -83,7 +83,7 @@
   pointer-events: none;
 }
 
-/* --- Overlay géant pour une sous-grille gagnée --- */
+/* --- Giant overlay for a won sub-grid --- */
 .subboard-winner {
   position: absolute;
   top: 0;
@@ -107,7 +107,7 @@
   color: #ff6b6b;
 }
 
-/* --- Cellule --- */
+/* --- Cell --- */
 .cell {
   width: 60px;
   height: 60px;
@@ -124,7 +124,6 @@
   background: #3a3a3a;
 }
 
-/* --- X et O stylisés --- */
 .cell.x {
   color: #4da3ff;
 }
@@ -134,11 +133,11 @@
 }
 
 
-/* --- Chat fixé à droite --- */
+/* --- Chat fixed on the right (desktop) --- */
 .fixed-chat {
   position: fixed;
   right: 0;
-  top: 80px; /* sous la navbar */
+  top: 80px;
   height: calc(100vh - 100px);
   width: 300px;
   transition: transform 0.25s ease;
@@ -146,17 +145,15 @@
   flex-direction: column;
 }
 
-/* Chat ouvert */
 .fixed-chat.open {
   transform: translateX(0);
 }
 
-/* Chat fermé : slide vers la droite */
 .fixed-chat.closed {
   transform: translateX(260px);
 }
 
-/* Bouton pour ouvrir/fermer le chat */
+/* Toggle chat button (desktop) */
 .chat-toggle-btn {
   position: absolute;
   left: -32px;
@@ -247,47 +244,239 @@
 
 .rematch-btn-accept,
 .rematch-btn-decline {
-  padding: 10px 28px;
+  padding: 10px 22px;
   border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.2s;
   font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.18s;
+  font-weight: 600;
 }
 
 .rematch-btn-accept {
-  border: none;
   background: #4da3ff;
   color: #fff;
+  border: 1px solid #4da3ff;
 }
 
 .rematch-btn-accept:hover {
-  background: #6bb4ff;
+  background: #3a8fef;
 }
 
 .rematch-btn-decline {
-  border: 1px solid #555;
   background: transparent;
-  color: #e5e5e5;
+  color: #ccc;
+  border: 1px solid #444;
 }
 
 .rematch-btn-decline:hover {
   background: #2a2a2a;
-  border-color: #777;
+  border-color: #555;
 }
 
 .rematch-spinner {
   display: inline-block;
   width: 16px;
   height: 16px;
-  margin-right: 10px;
   border: 2px solid #4da3ff;
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  margin-right: 8px;
   vertical-align: middle;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════════ */
+
+/* Tablette : plateau légèrement plus petit */
+@media (max-width: 900px) {
+  .subboard {
+    grid-template-columns: repeat(3, 48px);
+    grid-template-rows: repeat(3, 48px);
+  }
+  .cell {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    font-size: 24px;
+    padding: 0;
+    min-width: 0;
+    min-height: 0;
+  }
+  .subboard-winner {
+    font-size: 70px;
+  }
+}
+
+/* Téléphone : layout column, chat devient un drawer du bas */
+@media (max-width: 768px) {
+  .game-page {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+    /* Espace en bas pour ne pas être caché par le drawer du chat (48px peek) */
+    padding-bottom: 60px;
+  }
+
+  .game-left {
+    width: 100%;
+  }
+
+  .game-right {
+    width: auto;
+  }
+
+  .winner-banner {
+    font-size: 24px;
+    margin: 12px 0;
+  }
+
+  .reset-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+  }
+
+  .board {
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .subboard {
+    grid-template-columns: repeat(3, 36px);
+    grid-template-rows: repeat(3, 36px);
+  }
+
+  /* Les cellules remplissent EXACTEMENT leur slot de grille */
+  .cell {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    font-size: 20px;
+    padding: 0;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .subboard-winner {
+    font-size: 52px;
+  }
+
+  /* Chat → drawer en bas qui slide depuis le bas
+     Quand fermé : on garde 48px visible (le bouton-toggle)
+     Quand ouvert : couvre 60% de l'écran */
+  .fixed-chat {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 60vh;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    transition: transform 0.3s ease;
+  }
+
+  .fixed-chat.open {
+    transform: translateY(0);
+  }
+
+  .fixed-chat.closed {
+    /* Slide vers le bas, on garde 48px visible (la barre du bouton) */
+    transform: translateY(calc(100% - 48px));
+  }
+
+  /* Bouton-toggle : barre pleine largeur au top du drawer */
+  .chat-toggle-btn {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 48px;
+    border-radius: 0;
+    background: #4da3ff;
+    color: #111;
+    font-weight: 700;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    z-index: 101;
+  }
+
+  .chat-toggle-btn:hover {
+    background: #6bb6ff;
+  }
+
+  /* Le chat-container doit décaler son contenu sous le bouton */
+  .fixed-chat .chat-container {
+    margin-top: 48px;
+    height: calc(100% - 48px);
+    border-radius: 0;
+  }
+
+  /* Modals : moins de padding */
+  .rematch-modal {
+    min-width: auto;
+    width: calc(100vw - 32px);
+    padding: 24px 20px;
+  }
+
+  .rematch-modal h2 {
+    font-size: 20px;
+  }
+
+  .rematch-modal p {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .rematch-btn-accept,
+  .rematch-btn-decline {
+    padding: 8px 18px;
+    font-size: 14px;
+  }
+}
+
+/* Petit téléphone : encore plus serré */
+@media (max-width: 480px) {
+  .board {
+    gap: 3px;
+    padding: 5px;
+  }
+
+  .subboard {
+    grid-template-columns: repeat(3, 32px);
+    grid-template-rows: repeat(3, 32px);
+  }
+
+  /* Cellules : remplissent exactement le slot, même règle */
+  .cell {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    font-size: 18px;
+    padding: 0;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .subboard-winner {
+    font-size: 46px;
+  }
+
+  .winner-banner {
+    font-size: 20px;
+  }
+
+  .game-left h1 {
+    font-size: 22px;
+    margin: 8px 0;
+  }
 }

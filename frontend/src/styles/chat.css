@@ -9,7 +9,7 @@
   box-shadow: 0 0 20px rgba(0,0,0,0.4);
 }
 
-/* Zone scrollable */
+/* Scrollable zone */
 .chat-messages {
   flex: 1;
   padding: 16px;
@@ -19,7 +19,7 @@
   gap: 10px;
 }
 
-/* Messages moitié-moitié */
+/* Half-width bubbles */
 .chat-msg {
   max-width: 50%;
   padding: 10px 14px;
@@ -29,7 +29,7 @@
   word-wrap: break-word;
 }
 
-/* Message de l'adversaire (gauche) */
+/* Opponent message (left) */
 .chat-msg.opponent {
   background: #333;
   color: #e5e5e5;
@@ -37,7 +37,7 @@
   border-bottom-left-radius: 4px;
 }
 
-/* Ton message (droite) */
+/* Your message (right) */
 .chat-msg.me {
   background: #4da3ff;
   color: #111;
@@ -54,7 +54,7 @@
   text-align: right;
 }
 
-/* Pseudo au-dessus du message */
+/* Username above message */
 .msg-username {
   display: block;
   font-size: 11px;
@@ -89,4 +89,39 @@
   cursor: pointer;
   font-weight: 600;
   color: #111;
+}
+
+/* ───────── Responsive ───────── */
+@media (max-width: 768px) {
+  .chat-msg {
+    max-width: 75%;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  .chat-messages {
+    padding: 12px;
+    gap: 8px;
+  }
+  .chat-input {
+    padding: 8px;
+  }
+  .chat-input input {
+    padding: 8px;
+    font-size: 14px;
+  }
+  .chat-input button {
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-msg {
+    max-width: 80%;
+    font-size: 12px;
+  }
+  .msg-time,
+  .msg-username {
+    font-size: 10px;
+  }
 }

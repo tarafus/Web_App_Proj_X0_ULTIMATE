@@ -1,5 +1,3 @@
-/* ─── src/styles/lobby.css — remplace l'ancien contenu ─── */
-
 .lobby-page {
   max-width: 1100px;
   margin: 0 auto;
@@ -25,18 +23,12 @@
   font-size: 14px;
 }
 
-/* Grid principal */
+/* Main grid */
 .lobby-grid {
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 20px;
   align-items: start;
-}
-
-@media (max-width: 900px) {
-  .lobby-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .lobby-main,
@@ -47,7 +39,7 @@
   min-width: 0;
 }
 
-/* Cartes */
+/* Cards */
 .lobby-card {
   background: #161616;
   border: 1px solid #262626;
@@ -78,7 +70,7 @@
   text-transform: none;
 }
 
-/* Listes */
+/* Lists */
 .lobby-items {
   list-style: none;
   padding: 0;
@@ -161,7 +153,7 @@
   line-height: 1.5;
 }
 
-/* Boutons */
+/* Buttons */
 .btn-pill {
   padding: 6px 14px;
   border-radius: 7px;
@@ -244,7 +236,7 @@
   cursor: not-allowed;
 }
 
-/* Formulaire ajouter ami */
+/* Form */
 .lobby-form {
   display: flex;
   flex-direction: column;
@@ -280,4 +272,60 @@
 
 .lobby-row.sent .lobby-row-meta {
   color: #a89968;
+}
+
+/* ───────── Responsive ───────── */
+@media (max-width: 900px) {
+  .lobby-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .lobby-page {
+    padding: 20px 14px;
+  }
+  .lobby-header h1 {
+    font-size: 22px;
+  }
+  .lobby-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .lobby-page {
+    padding: 16px 10px;
+  }
+  .lobby-header {
+    margin-bottom: 18px;
+  }
+  .lobby-header h1 {
+    font-size: 20px;
+  }
+  .lobby-subtitle {
+    font-size: 12px;
+  }
+  .lobby-card {
+    padding: 14px;
+  }
+  .lobby-row {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .lobby-row-name {
+    font-size: 13px;
+  }
+  .lobby-row-meta {
+    font-size: 11px;
+  }
+  .btn-pill {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  .btn-square {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
 }
