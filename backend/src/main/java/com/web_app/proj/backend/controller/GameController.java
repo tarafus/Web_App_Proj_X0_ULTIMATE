@@ -1,5 +1,16 @@
 package com.web_app.proj.backend.controller;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.web_app.proj.backend.dto.ChatMessageDTO;
 import com.web_app.proj.backend.dto.GameDTO;
 import com.web_app.proj.backend.mapper.GameMapper;
@@ -8,11 +19,6 @@ import com.web_app.proj.backend.model.NotificationType;
 import com.web_app.proj.backend.service.ChatService;
 import com.web_app.proj.backend.service.GameService;
 import com.web_app.proj.backend.service.NotificationService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/game")
@@ -72,7 +78,7 @@ public class GameController {
             notificationService.create(
                     other,
                     NotificationType.REMINDER,
-                    username + " vous attend pour finir la partie",
+                    username + " is waiting for you to finish the game",
                     id,
                     null,
                     username

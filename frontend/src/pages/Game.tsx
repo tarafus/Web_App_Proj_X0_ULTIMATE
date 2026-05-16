@@ -4,12 +4,12 @@ import { useGameStore } from "../store/gameStore.ts";
 import { useUIStore } from "../store/uiStore.ts";
 import { useAuthStore } from "../store/authStore.ts";
 import { useChatStore, ChatMessage } from "../store/chatStore.ts";
+import { showToast } from "../utils/toast.ts";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/api.ts";
 import { useGameWebSocket } from "../hooks/useGameWebSocket.ts";
 import "../styles/game.css";
-import { showToast } from "../utils/toast.ts";
 
 interface GameInfo {
   id: number;
@@ -27,9 +27,10 @@ export default function Game() {
   const { id } = useParams();
   const gameId = Number(id);
   const navigate = useNavigate();
+
   const user = useAuthStore((s) => s.user);
-  const login = useAuthStore((s) => s.login);
   const token = useAuthStore((s) => s.token);
+  const login = useAuthStore((s) => s.login);
 
   const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
   const [mySymbol, setMySymbol] = useState<"X" | "O" | null>(null);
@@ -68,7 +69,7 @@ export default function Game() {
 
   useEffect(() => { globalWinnerRef.current = globalWinner; }, [globalWinner]);
 
-  // Quand la partie se termine, refetch l'user pour récupérer le nouvel ELO
+  // Refresh user when game ends so the new ELO is reflected everywhere
   useEffect(() => {
     if (!globalWinner || !token) return;
     api.get("/auth/me")
@@ -162,8 +163,8 @@ export default function Game() {
         else if (info.player2Id === user.id) setMySymbol("O");
       })
       .catch((err) => {
-        if (err.response?.status === 400) setError("Cette partie est déjà complète.");
-        else setError("Impossible de rejoindre la partie.");
+        if (err.response?.status === 400) setError("This game is already full.");
+        else setError("Could not join the game.");
       });
   }, [gameId, user]);
 
@@ -178,15 +179,15 @@ export default function Game() {
         if (s.globalWinner !== undefined) setGlobalWinner(s.globalWinner);
         if (s.activeSubBoard !== undefined) setActiveSubBoard(s.activeSubBoard);
       })
-      .catch((e) => console.error("Erreur GET state:", e));
-  }, [gameInfo, gameId]);
+      .catch((e) => console.error("Error fetching game state:", e));
+  }, [gameInfo, gameId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!gameInfo) return;
     api.get<ChatMessage[]>(`/game/${gameId}/messages`)
       .then((res) => setChatMessages(res.data))
       .catch(() => { });
-  }, [gameInfo, gameId]);
+  }, [gameInfo, gameId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!gameInfo || !user) return;
@@ -194,9 +195,8 @@ export default function Game() {
     joinSentRef.current = true;
     const t = setTimeout(() => sendJoin(user.username), 300);
     return () => clearTimeout(t);
-  }, [gameInfo, user]);
+  }, [gameInfo, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Charger le statut d'amitié avec l'adversaire
   useEffect(() => {
     if (!gameInfo || !user) return;
     const opponent = gameInfo.player1Id === user.id
@@ -217,10 +217,13 @@ export default function Game() {
     useGameStore.getState().play(move.sub, move.cell);
     const s = useGameStore.getState();
     sendState({
-      sub: move.sub, cell: move.cell,
-      board: s.board, subWinners: s.subWinners,
-      currentPlayer: s.currentPlayer, globalWinner: s.globalWinner,
+      board: s.board,
+      subWinners: s.subWinners,
+      currentPlayer: s.currentPlayer,
+      globalWinner: s.globalWinner,
       activeSubBoard: s.activeSubBoard,
+      sub: move.sub,
+      cell: move.cell,
     });
   };
 
@@ -238,8 +241,7 @@ export default function Game() {
 
     try {
       if (friendStatus === "PENDING_RECEIVED") {
-        // Trouver l'id de la demande et l'accepter
-        const reqs = await api.get<Array<{ id: number; requester: string }>>("/friends/requests");
+        const reqs = await api.get<any[]>("/friends/requests");
         const req = reqs.data.find((r) => r.requester === opponent);
         if (req) {
           await api.post(`/friends/accept/${req.id}`);
@@ -250,7 +252,7 @@ export default function Game() {
         setFriendStatus("PENDING_SENT");
       }
     } catch {
-      showToast("Erreur lors de l'ajout en ami.");
+      showToast("Failed to add friend.");
     }
   };
 
@@ -267,7 +269,7 @@ export default function Game() {
     setRematchState("sent");
     rematchTimeoutRef.current = setTimeout(() => {
       setRematchState("idle");
-      showToast("L'adversaire n'a pas répondu.");
+      showToast("Opponent did not respond.");
     }, 15000);
   };
 
@@ -295,8 +297,8 @@ export default function Game() {
     return (
       <div className="game-page">
         <div className="game-left">
-          <h1>Erreur</h1><p>{error}</p>
-          <button className="btn-primary" onClick={() => navigate("/")}>Retour à l'accueil</button>
+          <h1>Error</h1><p>{error}</p>
+          <button className="btn-primary" onClick={() => navigate("/")}>Back to home</button>
         </div>
       </div>
     );
@@ -305,7 +307,7 @@ export default function Game() {
   if (!gameInfo || !mySymbol) {
     return (
       <div className="game-page">
-        <div className="game-left"><h1>Chargement de la partie...</h1></div>
+        <div className="game-left"><h1>Loading game...</h1></div>
       </div>
     );
   }
@@ -319,12 +321,11 @@ export default function Game() {
     ? gameInfo.player2Username
     : gameInfo.player1Username;
 
-  // Texte du bouton d'amitié
   const friendBtnLabel =
-    friendStatus === "FRIENDS" ? "Déjà amis ✓"
-      : friendStatus === "PENDING_SENT" ? "Demande envoyée"
-        : friendStatus === "PENDING_RECEIVED" ? "Accepter sa demande d'ami"
-          : "Ajouter en ami";
+    friendStatus === "FRIENDS" ? "Already friends ✓"
+      : friendStatus === "PENDING_SENT" ? "Request sent"
+        : friendStatus === "PENDING_RECEIVED" ? "Accept their friend request"
+          : "Add as friend";
 
   const friendBtnDisabled =
     friendStatus === "FRIENDS" || friendStatus === "PENDING_SENT" || friendStatus === "SELF";
@@ -332,15 +333,14 @@ export default function Game() {
   return (
     <div className="game-page">
       <div className="game-left">
-        <h1>Partie</h1>
+        <h1>Match</h1>
         <p>
-          Vous êtes : <strong>{mySymbol}</strong>
+          You are: <strong>{mySymbol}</strong>
           {gameInfo.player1Username && gameInfo.player2Username && (
             <> — {gameInfo.player1Username} (X) vs {gameInfo.player2Username} (O)</>
           )}
         </p>
 
-        {/* Bouton ajouter en ami (visible dès qu'on a un adversaire) */}
         {opponentUsername && (
           <div style={{ marginBottom: 8 }}>
             <button
@@ -360,21 +360,21 @@ export default function Game() {
         )}
 
         {waitingForOpponent ? (
-          <p style={{ color: "#888" }}>En attente d'un second joueur...</p>
+          <p style={{ color: "#888" }}>Waiting for a second player...</p>
         ) : globalWinner ? (
           <>
             <h2 className="winner-banner">
-              {(globalWinner === "X" ? gameInfo.player1Username : gameInfo.player2Username) ?? `Joueur ${globalWinner}`} a gagné la partie !
+              {(globalWinner === "X" ? gameInfo.player1Username : gameInfo.player2Username) ?? `Player ${globalWinner}`} won the game!
             </h2>
             {abandonedBy && (
               <p style={{ color: "#888", textAlign: "center", marginTop: 4, fontSize: 14 }}>
-                ({abandonedBy} a abandonné)
+                ({abandonedBy} surrendered)
               </p>
             )}
           </>
         ) : (
           <p style={{ fontWeight: "bold", color: isMyTurn ? "#2e7d32" : "#999" }}>
-            {isMyTurn ? "À vous de jouer" : "Tour de l'adversaire"}
+            {isMyTurn ? "Your turn" : "Opponent's turn"}
           </p>
         )}
 
@@ -384,7 +384,7 @@ export default function Game() {
             border: "1px solid #555", borderRadius: 8, display: "flex",
             alignItems: "center", justifyContent: "space-between", gap: 12,
           }}>
-            <span style={{ fontSize: 14 }}>Votre adversaire a quitté la partie.</span>
+            <span style={{ fontSize: 14 }}>Your opponent left the game.</span>
             <button
               onClick={handlePing} disabled={pingDone}
               style={{
@@ -394,7 +394,7 @@ export default function Game() {
                 cursor: pingDone ? "default" : "pointer", fontSize: 13,
               }}
             >
-              {pingDone ? "Rappel envoyé ✓" : "Rappeler l'adversaire"}
+              {pingDone ? "Reminder sent ✓" : "Remind opponent"}
             </button>
           </div>
         )}
@@ -420,15 +420,15 @@ export default function Game() {
               onMouseEnter={(e) => { e.currentTarget.style.background = "#2a1a1a"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
-              Abandonner la partie
+              Surrender
             </button>
           </div>
         )}
 
         {globalWinner && rematchState === "idle" && (
           <div style={{ display: "flex", gap: 12, marginTop: 16, justifyContent: "center" }}>
-            <button className="reset-btn" onClick={handleRematchRequest}>Rejouer</button>
-            <button className="btn-secondary" onClick={() => navigate("/")}>Accueil</button>
+            <button className="reset-btn" onClick={handleRematchRequest}>Rematch</button>
+            <button className="btn-secondary" onClick={() => navigate("/")}>Home</button>
           </div>
         )}
       </div>
@@ -443,12 +443,12 @@ export default function Game() {
       {confirmAbandon && (
         <div className="rematch-overlay">
           <div className="rematch-modal">
-            <h2>Abandonner la partie ?</h2>
-            <p>Votre adversaire remportera la victoire et votre ELO en sera affecté.</p>
+            <h2>Surrender the game?</h2>
+            <p>Your opponent will win and your ELO will be affected.</p>
             <div className="rematch-modal-buttons">
-              <button className="rematch-btn-decline" onClick={() => setConfirmAbandon(false)}>Annuler</button>
+              <button className="rematch-btn-decline" onClick={() => setConfirmAbandon(false)}>Cancel</button>
               <button className="rematch-btn-accept" style={{ background: "#e57373" }} onClick={confirmAbandonAction}>
-                Confirmer
+                Confirm
               </button>
             </div>
           </div>
@@ -458,8 +458,8 @@ export default function Game() {
       {rematchState === "sent" && (
         <div className="rematch-overlay">
           <div className="rematch-modal">
-            <h2><span className="rematch-spinner" /> En attente de l'adversaire</h2>
-            <p>Votre demande de revanche a été envoyée.</p>
+            <h2><span className="rematch-spinner" /> Waiting for opponent</h2>
+            <p>Your rematch request has been sent.</p>
             <div className="rematch-modal-buttons">
               <button
                 className="rematch-btn-decline"
@@ -471,7 +471,7 @@ export default function Game() {
                   setRematchState("idle");
                 }}
               >
-                Annuler
+                Cancel
               </button>
             </div>
           </div>
@@ -481,11 +481,11 @@ export default function Game() {
       {rematchState === "received" && (
         <div className="rematch-overlay">
           <div className="rematch-modal">
-            <h2>Demande de revanche</h2>
-            <p><strong>{rematchRequester}</strong> veut rejouer une partie.</p>
+            <h2>Rematch request</h2>
+            <p><strong>{rematchRequester}</strong> wants a rematch.</p>
             <div className="rematch-modal-buttons">
-              <button className="rematch-btn-accept" onClick={handleRematchAccept}>Accepter</button>
-              <button className="rematch-btn-decline" onClick={handleRematchDecline}>Refuser</button>
+              <button className="rematch-btn-accept" onClick={handleRematchAccept}>Accept</button>
+              <button className="rematch-btn-decline" onClick={handleRematchDecline}>Decline</button>
             </div>
           </div>
         </div>

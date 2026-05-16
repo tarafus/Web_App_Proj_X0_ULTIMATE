@@ -12,9 +12,9 @@ const HUMAN_SYMBOL = "X";
 type Difficulty = "EASY" | "MEDIUM" | "HARD";
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
-  EASY: "Facile",
-  MEDIUM: "Moyen",
-  HARD: "Difficile",
+  EASY: "Easy",
+  MEDIUM: "Medium",
+  HARD: "Hard",
 };
 
 export default function SoloGame() {
@@ -22,8 +22,8 @@ export default function SoloGame() {
   const navigate = useNavigate();
 
   const currentPlayer = useGameStore((s) => s.currentPlayer);
-  const globalWinner  = useGameStore((s) => s.globalWinner);
-  const resetGame     = useGameStore((s) => s.reset);
+  const globalWinner = useGameStore((s) => s.globalWinner);
+  const resetGame = useGameStore((s) => s.reset);
 
   const [aiThinking, setAiThinking] = useState(false);
   const aiThinkingRef = useRef(false);
@@ -31,14 +31,14 @@ export default function SoloGame() {
   const validDifficulty: Difficulty =
     difficulty && ["EASY", "MEDIUM", "HARD"].includes(difficulty) ? difficulty : "MEDIUM";
 
-  // Reset au montage / quand on change de difficulté
+  // Reset on mount / when difficulty changes
   useEffect(() => {
     resetGame();
     setAiThinking(false);
     aiThinkingRef.current = false;
   }, [validDifficulty]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Tour de l'IA
+  // AI turn
   useEffect(() => {
     if (currentPlayer !== AI_SYMBOL) return;
     if (globalWinner) return;
@@ -46,7 +46,7 @@ export default function SoloGame() {
 
     aiThinkingRef.current = true;
 
-    // Petit délai pour que le coup du joueur soit visible avant que l'IA joue
+    // Small delay so the human's move shows before the AI plays
     const timer = setTimeout(async () => {
       setAiThinking(true);
 
@@ -63,7 +63,7 @@ export default function SoloGame() {
         const res = await api.post<{ sub: number; cell: number }>("/ai/move", requestBody);
         useGameStore.getState().play(res.data.sub, res.data.cell);
       } catch {
-        showToast("Erreur côté IA");
+        showToast("AI error");
       } finally {
         setAiThinking(false);
         aiThinkingRef.current = false;
@@ -91,20 +91,20 @@ export default function SoloGame() {
   const isHumanTurn = currentPlayer === HUMAN_SYMBOL && !globalWinner && !aiThinking;
   const canPlay = isHumanTurn;
 
-  // Texte du gagnant
+  // Winner text
   let winnerText = "";
   if (globalWinner === HUMAN_SYMBOL) {
-    winnerText = "Vous avez gagné ! 🎉";
+    winnerText = "You won! 🎉";
   } else if (globalWinner === AI_SYMBOL) {
-    winnerText = `IA (${DIFFICULTY_LABEL[validDifficulty]}) a gagné !`;
+    winnerText = `AI (${DIFFICULTY_LABEL[validDifficulty]}) won!`;
   }
 
   return (
     <div className="game-page">
       <div className="game-left">
-        <h1>Solo vs IA</h1>
+        <h1>Solo vs AI</h1>
         <p style={{ marginBottom: 8 }}>
-          Difficulté : <strong>{DIFFICULTY_LABEL[validDifficulty]}</strong> — Vous (<strong>X</strong>) vs IA (<strong>O</strong>)
+          Difficulty: <strong>{DIFFICULTY_LABEL[validDifficulty]}</strong> — You (<strong>X</strong>) vs AI (<strong>O</strong>)
         </p>
 
         {globalWinner ? (
@@ -124,11 +124,11 @@ export default function SoloGame() {
                 verticalAlign: "middle",
               }}
             />
-            L'IA réfléchit...
+            AI is thinking...
           </p>
         ) : (
           <p style={{ fontWeight: "bold", color: isHumanTurn ? "#2e7d32" : "#999" }}>
-            {isHumanTurn ? "À vous de jouer" : "Tour de l'IA"}
+            {isHumanTurn ? "Your turn" : "AI's turn"}
           </p>
         )}
 
@@ -152,16 +152,16 @@ export default function SoloGame() {
             }}
           >
             <button className="reset-btn" onClick={handleRestart}>
-              Rejouer
+              Play again
             </button>
             <button className="btn-secondary" onClick={() => navigate("/")}>
-              Accueil
+              Home
             </button>
           </div>
         )}
 
         <p style={{ marginTop: 20, fontSize: 12, color: "#666", textAlign: "center" }}>
-          Les parties solo ne sont pas comptabilisées dans le classement ELO.
+          Solo matches don't count toward the ELO ranking.
         </p>
       </div>
     </div>

@@ -39,14 +39,14 @@ public class InvitationService {
 
     public InvitationDTO send(String senderUsername, String receiverUsername) {
         if (senderUsername.equals(receiverUsername)) {
-            throw new RuntimeException("Vous ne pouvez pas vous inviter vous-même");
+            throw new RuntimeException("You cannot invite yourself");
         }
 
         User sender = userRepository.findByUsername(senderUsername).orElseThrow();
         User receiver = userRepository.findByUsername(receiverUsername)
-                .orElseThrow(() -> new RuntimeException("Joueur introuvable"));
+                .orElseThrow(() -> new RuntimeException("Player not found"));
 
-        // 1. Cross-invitation : si receiver nous a déjà invité → auto-accept
+        // 1. Cross-invitation: if receiver already invited us → auto-accept
         Optional<Invitation> reverseInv = invitationRepository
                 .findFirstBySenderAndReceiverAndStatusOrderByIdDesc(
                         receiver, sender, InvitationStatus.PENDING);
@@ -54,15 +54,15 @@ public class InvitationService {
             return accept(reverseInv.get().getId(), senderUsername);
         }
 
-        // 2. Anti-spam : empêcher d'envoyer plusieurs invitations à la même personne
+        // 2. Anti-spam: prevent sending multiple invitations to the same person
         Optional<Invitation> forwardInv = invitationRepository
                 .findFirstBySenderAndReceiverAndStatusOrderByIdDesc(
                         sender, receiver, InvitationStatus.PENDING);
         if (forwardInv.isPresent()) {
-            throw new RuntimeException("Vous avez déjà invité ce joueur");
+            throw new RuntimeException("You already invited this player");
         }
 
-        // 3. Nouvelle invitation
+        // 3. New invitation
         Invitation inv = new Invitation();
         inv.setSender(sender);
         inv.setReceiver(receiver);
@@ -72,7 +72,7 @@ public class InvitationService {
         notificationService.create(
                 receiverUsername,
                 NotificationType.INVITATION,
-                senderUsername + " vous invite à jouer",
+                senderUsername + " invited you to play",
                 null,
                 saved.getId(),
                 senderUsername
@@ -83,13 +83,13 @@ public class InvitationService {
 
     public InvitationDTO accept(Long invitationId, String username) {
         Invitation inv = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new RuntimeException("Invitation introuvable"));
+                .orElseThrow(() -> new RuntimeException("Invitation not found"));
 
         if (!inv.getReceiver().getUsername().equals(username)) {
-            throw new RuntimeException("Cette invitation ne vous est pas destinée");
+            throw new RuntimeException("This invitation is not for you");
         }
         if (inv.getStatus() != InvitationStatus.PENDING) {
-            throw new RuntimeException("Cette invitation a déjà été traitée");
+            throw new RuntimeException("This invitation has already been handled");
         }
 
         Game game = gameService.createGame(inv.getSender().getUsername());
@@ -111,13 +111,13 @@ public class InvitationService {
 
     public InvitationDTO decline(Long invitationId, String username) {
         Invitation inv = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new RuntimeException("Invitation introuvable"));
+                .orElseThrow(() -> new RuntimeException("Invitation not found"));
 
         if (!inv.getReceiver().getUsername().equals(username)) {
-            throw new RuntimeException("Cette invitation ne vous est pas destinée");
+            throw new RuntimeException("This invitation is not for you");
         }
         if (inv.getStatus() != InvitationStatus.PENDING) {
-            throw new RuntimeException("Cette invitation a déjà été traitée");
+            throw new RuntimeException("This invitation has already been handled");
         }
 
         inv.setStatus(InvitationStatus.DECLINED);
@@ -128,7 +128,7 @@ public class InvitationService {
         notificationService.create(
                 inv.getSender().getUsername(),
                 NotificationType.DECLINED,
-                username + " a refusé votre invitation",
+                username + " declined your invitation",
                 null,
                 null,
                 username

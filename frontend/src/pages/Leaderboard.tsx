@@ -22,22 +22,22 @@ export default function Leaderboard() {
                 setPlayers(ranked);
             })
             .catch(() => {
-                console.error("Impossible de charger le leaderboard");
+                console.error("Failed to load leaderboard");
             });
     }, []);
 
     return (
         <div className="leaderboard-container">
-            <h1>Classement ELO</h1>
+            <h1>ELO Leaderboard</h1>
 
             <table className="leaderboard-table">
                 <thead>
                     <tr>
-                        <th>Rang</th>
-                        <th>Joueur</th>
+                        <th>Rank</th>
+                        <th>Player</th>
                         <th>ELO</th>
-                        <th>Victoires</th>
-                        <th>Défaites</th>
+                        <th>Wins</th>
+                        <th>Losses</th>
                     </tr>
                 </thead>
 

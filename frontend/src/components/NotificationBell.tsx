@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotificationStore } from "../store/notificationStore.ts";
-import { api } from "../api/api.ts";
 import { showToast } from "../utils/toast.ts";
+import { api } from "../api/api.ts";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -17,13 +17,10 @@ export default function NotificationBell() {
 
   const unreadCount = notifications.filter((n) => !readIds.has(n.id)).length;
 
-  // Marquer toutes comme lues quand on ouvre la cloche
-  // (et aussi si de nouvelles arrivent pendant qu'elle est ouverte)
   useEffect(() => {
     if (open) markAllAsRead();
   }, [open, notifications.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Click-outside pour fermer
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -40,7 +37,7 @@ export default function NotificationBell() {
           dismiss(n.id);
           setOpen(false);
         })
-        .catch(() => showToast("Erreur lors de l'acceptation."));
+        .catch(() => showToast("Failed to accept."));
     } else if (n.gameId) {
       navigate(`/game/${n.gameId}`);
       dismiss(n.id);
@@ -86,14 +83,14 @@ export default function NotificationBell() {
                 background: "none", border: "none", color: "#888",
                 cursor: "pointer", fontSize: 12,
               }}>
-                Tout effacer
+                Clear all
               </button>
             )}
           </div>
 
           {notifications.length === 0 ? (
             <p style={{ color: "#555", fontSize: 13, textAlign: "center", margin: "16px 0" }}>
-              Aucune notification
+              No notifications
             </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 320, overflowY: "auto" }}>
@@ -112,7 +109,7 @@ export default function NotificationBell() {
                         marginTop: 6, background: "none", border: "none",
                         color: "#4da3ff", cursor: "pointer", fontSize: 12, padding: 0,
                       }}>
-                        {n.type === "invitation" ? "Accepter et jouer →" : "Rejoindre la partie →"}
+                        {n.type === "invitation" ? "Accept and play →" : "Join game →"}
                       </button>
                     )}
                   </div>

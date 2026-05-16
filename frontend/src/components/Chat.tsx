@@ -13,7 +13,7 @@ export default function Chat({ onSend }: ChatProps) {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Scroll auto
+  // Auto-scroll on new message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
@@ -55,9 +55,9 @@ export default function Chat({ onSend }: ChatProps) {
           maxLength={40}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Écrire un message..."
+          placeholder="Type a message..."
         />
-        <button onClick={handleSend}>Envoyer</button>
+        <button onClick={handleSend}>Send</button>
       </div>
     </div>
   );

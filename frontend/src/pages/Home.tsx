@@ -9,9 +9,9 @@ type MatchmakingState = "idle" | "waiting";
 type Difficulty = "EASY" | "MEDIUM" | "HARD";
 
 const DIFFICULTIES: { value: Difficulty; label: string; description: string }[] = [
-  { value: "EASY",   label: "Facile",    description: "L'IA voit le coup immédiat" },
-  { value: "MEDIUM", label: "Moyen",     description: "L'IA anticipe 2-3 coups" },
-  { value: "HARD",   label: "Difficile", description: "L'IA anticipe 5 coups" },
+  { value: "EASY", label: "Easy", description: "AI sees the immediate move" },
+  { value: "MEDIUM", label: "Medium", description: "AI thinks 2-3 moves ahead" },
+  { value: "HARD", label: "Hard", description: "AI thinks 5 moves ahead" },
 ];
 
 export default function Home() {
@@ -26,12 +26,12 @@ export default function Home() {
       const res = await api.post<{ status: string }>("/matchmaking/join");
       if (res.data.status === "waiting") setMmState("waiting");
     } catch {
-      showToast("Impossible de rejoindre la file d'attente.");
+      showToast("Failed to join matchmaking queue.");
     }
   };
 
   const handleCancel = async () => {
-    await api.post("/matchmaking/leave").catch(() => {});
+    await api.post("/matchmaking/leave").catch(() => { });
     setMmState("idle");
   };
 
@@ -50,17 +50,17 @@ export default function Home() {
       <section className="hero">
         <h1 className="hero-title">Morpion Ultimate</h1>
         <p className="hero-subtitle">
-          Le Tic-Tac-Toe réinventé. 9 grilles. 81 cases. Une stratégie infinie.
+          Tic-Tac-Toe reinvented. 9 grids. 81 cells. Infinite strategy.
         </p>
 
         <div className="hero-buttons">
           {mmState === "idle" && (
             <>
               <button className="btn-primary" onClick={handlePlay}>
-                Jouer en ligne
+                Play online
               </button>
               <button className="btn-secondary" onClick={handlePlayAI} style={{ marginLeft: 12 }}>
-                Jouer contre l'IA
+                Play vs AI
               </button>
             </>
           )}
@@ -77,11 +77,11 @@ export default function Home() {
                   borderRadius: "50%", animation: "spin 0.8s linear infinite",
                 }} />
                 <span style={{ fontSize: 16, opacity: 0.85 }}>
-                  Recherche d'un adversaire...
+                  Searching for an opponent...
                 </span>
               </div>
               <button className="btn-secondary" onClick={handleCancel}>
-                Annuler
+                Cancel
               </button>
             </div>
           )}
@@ -89,19 +89,19 @@ export default function Home() {
       </section>
 
       <section className="features">
-        <h2>Fonctionnalités</h2>
+        <h2>Features</h2>
         <div className="features-grid">
           <div className="feature-card">
-            <h3>Parties en ligne</h3>
-            <p>Affrontez vos adversaires en temps réel via WebSocket.</p>
+            <h3>Online matches</h3>
+            <p>Play against opponents in real-time via WebSocket.</p>
           </div>
           <div className="feature-card">
-            <h3>Matchmaking ELO</h3>
-            <p>Trouvez automatiquement un adversaire de niveau équivalent.</p>
+            <h3>ELO Matchmaking</h3>
+            <p>Automatically find an opponent at your skill level.</p>
           </div>
           <div className="feature-card">
-            <h3>IA avec Minimax</h3>
-            <p>Jouez en solo contre une IA à 3 niveaux de difficulté.</p>
+            <h3>Minimax AI</h3>
+            <p>Play solo against an AI with 3 difficulty levels.</p>
           </div>
         </div>
       </section>
@@ -118,7 +118,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Modal de sélection de difficulté */}
+      {/* Difficulty selection modal */}
       {showAIModal && (
         <div
           onClick={() => setShowAIModal(false)}
@@ -142,9 +142,9 @@ export default function Home() {
               color: "#e5e5e5",
             }}
           >
-            <h2 style={{ marginTop: 0, marginBottom: 8 }}>Choisir la difficulté</h2>
+            <h2 style={{ marginTop: 0, marginBottom: 8 }}>Select difficulty</h2>
             <p style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>
-              Hors classement ELO. Vous jouez les X.
+              Not ranked. You play as X.
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -193,7 +193,7 @@ export default function Home() {
                   fontSize: 13,
                 }}
               >
-                Annuler
+                Cancel
               </button>
             </div>
           </div>

@@ -15,40 +15,32 @@ export default function Register() {
     e.preventDefault();
 
     try {
-      // 1) Register → récupère le token
       const response = await authApi.register({ username, password });
       const token = response.data;
-
-      // 2) Stocker le token immédiatement
       useAuthStore.getState().login(token, null);
 
-      // 3) Appeler /auth/me AVEC le token
       const userResponse = await authApi.me(token);
-      const user = userResponse.data;
-
-      // 4) Stocker le user
-      useAuthStore.getState().login(token, user);
+      useAuthStore.getState().login(token, userResponse.data);
 
       navigate("/");
     } catch (err: any) {
-      console.error("Erreur register:", err);
+      console.error("Register error:", err);
       if (err.response?.status === 400) {
-        // Le backend renvoie "Username already taken"
         showToast(err.response.data);
       } else {
-        showToast("Erreur lors de l'inscription");
+        showToast("Sign up failed");
       }
     }
   }
 
   return (
     <div className="auth-container">
-      <h1>Créer un compte</h1>
+      <h1>Sign up</h1>
 
       <form className="auth-form" onSubmit={handleRegister}>
         <input
           type="text"
-          placeholder="Nom d'utilisateur"
+          placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
@@ -56,19 +48,19 @@ export default function Register() {
 
         <input
           type="password"
-          placeholder="Mot de passe"
+          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
 
         <button className="btn-primary" type="submit">
-          S'inscrire
+          Create account
         </button>
       </form>
 
       <p className="auth-switch">
-        Déjà un compte ? <Link to="/login">Se connecter</Link>
+        Already have an account? <Link to="/login">Sign in</Link>
       </p>
     </div>
   );

@@ -15,36 +15,28 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      // 1) Login → récupère le token
       const response = await authApi.login({ username, password });
       const token = response.data;
-
-      // 2) Stocker le token immédiatement
       useAuthStore.getState().login(token, null);
 
-      // 3) Appeler /auth/me AVEC le token
       const userResponse = await authApi.me(token);
-      const user = userResponse.data;
+      useAuthStore.getState().login(token, userResponse.data);
 
-      // 4) Stocker le user
-      useAuthStore.getState().login(token, user);
-
-      // 5) Redirection
       navigate("/");
     } catch (err) {
-      console.error("Erreur login:", err);
-      showToast("Identifiants invalides");
+      console.error("Login error:", err);
+      showToast("Invalid credentials");
     }
   }
 
   return (
     <div className="auth-container">
-      <h1>Connexion</h1>
+      <h1>Sign in</h1>
 
       <form className="auth-form" onSubmit={handleLogin}>
         <input
           type="text"
-          placeholder="Nom d'utilisateur"
+          placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
@@ -52,19 +44,19 @@ export default function Login() {
 
         <input
           type="password"
-          placeholder="Mot de passe"
+          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
 
         <button className="btn-primary" type="submit">
-          Se connecter
+          Sign in
         </button>
       </form>
 
       <p className="auth-switch">
-        Pas encore de compte ? <Link to="/register">Créer un compte</Link>
+        Don't have an account? <Link to="/register">Sign up</Link>
       </p>
     </div>
   );

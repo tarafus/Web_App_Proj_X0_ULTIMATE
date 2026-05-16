@@ -58,7 +58,7 @@ public class FriendshipService {
         notificationService.create(
                 addresseeUsername,
                 NotificationType.FRIEND_REQUEST,
-                requesterUsername + " vous a envoyé une demande d'ami",
+                requesterUsername + " sent you a friend request",
                 null, null, saved.getId(), requesterUsername
         );
 
@@ -82,7 +82,7 @@ public class FriendshipService {
         notificationService.create(
                 f.getRequester().getUsername(),
                 NotificationType.FRIEND_ACCEPTED,
-                username + " a accepté votre demande d'ami",
+                username + " accepted your friend request",
                 null, null, f.getId(), username
         );
 
@@ -103,16 +103,16 @@ public class FriendshipService {
         notificationService.clearFriendshipNotif(friendshipId, username);
         friendshipRepository.delete(f);
 
-        // Notifier le requester que sa demande a été refusée
+        // Notify the requester that their request was declined
         notificationService.create(
                 requesterUsername,
                 NotificationType.FRIEND_DECLINED,
-                username + " a refusé votre demande d'ami",
+                username + " declined your friend request",
                 null, null, null, username
         );
     }
 
-    /** Le requester annule sa propre demande envoyée. */
+    /** Requester cancels their own pending request. */
     public void cancelRequest(Long friendshipId, String username) {
         Friendship f = friendshipRepository.findById(friendshipId).orElseThrow();
         if (!f.getRequester().getUsername().equals(username)) {
@@ -122,7 +122,7 @@ public class FriendshipService {
             throw new RuntimeException("Request already handled");
         }
 
-        // Supprimer la notif côté destinataire pour qu'elle ne soit plus visible
+        // Clear the notification on the addressee's side
         notificationService.clearFriendshipNotif(friendshipId, f.getAddressee().getUsername());
         friendshipRepository.delete(f);
     }
