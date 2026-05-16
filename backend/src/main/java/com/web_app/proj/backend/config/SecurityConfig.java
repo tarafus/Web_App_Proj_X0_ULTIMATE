@@ -38,7 +38,7 @@ public class SecurityConfig {
                                 "/auth/login**",
                                 "/auth/register**",
                                 "/auth/all",
-                                "/auth/me/**",  // ← couvre /auth/me ET /auth/me/history
+                                "/auth/me/**",
                                 "/ws/**",
                                 "/game/**",
                                 "/topic/**",
@@ -55,7 +55,24 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+
+        // setAllowedOriginPatterns autorise les wildcards (contrairement à setAllowedOrigins).
+        // On accepte localhost (dev local) + les plages d'IP LAN classiques :
+        //  - 192.168.x.x (routeurs domestiques)
+        //  - 10.x.x.x    (réseaux d'entreprise / VPN)
+        //  - 172.16.0.0 – 172.31.255.255 (Docker / autres réseaux privés)
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "http://192.168.*.*:*",
+                "http://10.*.*.*:*",
+                "http://172.16.*.*:*", "http://172.17.*.*:*", "http://172.18.*.*:*",
+                "http://172.19.*.*:*", "http://172.20.*.*:*", "http://172.21.*.*:*",
+                "http://172.22.*.*:*", "http://172.23.*.*:*", "http://172.24.*.*:*",
+                "http://172.25.*.*:*", "http://172.26.*.*:*", "http://172.27.*.*:*",
+                "http://172.28.*.*:*", "http://172.29.*.*:*", "http://172.30.*.*:*",
+                "http://172.31.*.*:*"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
