@@ -294,21 +294,24 @@
    Responsive
    ═══════════════════════════════════════════════════════ */
 
-/* Tablette : plateau légèrement plus petit */
+/* Tablette */
 @media (max-width: 900px) {
   .subboard {
+    box-sizing: border-box;
+    width: 148px;
+    height: 148px;
     grid-template-columns: repeat(3, 48px);
     grid-template-rows: repeat(3, 48px);
   }
+
   .cell {
-    width: 100%;
-    height: 100%;
     box-sizing: border-box;
+    width: 48px;
+    height: 48px;
     font-size: 24px;
     padding: 0;
-    min-width: 0;
-    min-height: 0;
   }
+
   .subboard-winner {
     font-size: 70px;
   }
@@ -320,7 +323,6 @@
     flex-direction: column;
     gap: 16px;
     padding: 12px;
-    /* Espace en bas pour ne pas être caché par le drawer du chat (48px peek) */
     padding-bottom: 60px;
   }
 
@@ -342,34 +344,39 @@
     font-size: 16px;
   }
 
+  /* Board : fait exactement la taille de son contenu, centré */
   .board {
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto;
     gap: 4px;
     padding: 6px;
+    grid-template-columns: repeat(3, min-content);
   }
 
+  /* Sub-grid : largeur explicite + box-sizing border-box pour empêcher l'étirement par la grille parente */
   .subboard {
+    box-sizing: border-box;
+    width: 112px;   /* 3 cellules de 36px + 2px de bordure de chaque côté */
+    height: 112px;
     grid-template-columns: repeat(3, 36px);
     grid-template-rows: repeat(3, 36px);
   }
 
-  /* Les cellules remplissent EXACTEMENT leur slot de grille */
+  /* Cellule : taille explicite, fait pile-poil la colonne */
   .cell {
-    width: 100%;
-    height: 100%;
     box-sizing: border-box;
+    width: 36px;
+    height: 36px;
     font-size: 20px;
     padding: 0;
-    min-width: 0;
-    min-height: 0;
   }
 
   .subboard-winner {
     font-size: 52px;
   }
 
-  /* Chat → drawer en bas qui slide depuis le bas
-     Quand fermé : on garde 48px visible (le bouton-toggle)
-     Quand ouvert : couvre 60% de l'écran */
+  /* Chat → drawer en bas */
   .fixed-chat {
     position: fixed;
     top: auto;
@@ -389,11 +396,9 @@
   }
 
   .fixed-chat.closed {
-    /* Slide vers le bas, on garde 48px visible (la barre du bouton) */
     transform: translateY(calc(100% - 48px));
   }
 
-  /* Bouton-toggle : barre pleine largeur au top du drawer */
   .chat-toggle-btn {
     position: absolute;
     left: 0;
@@ -414,14 +419,12 @@
     background: #6bb6ff;
   }
 
-  /* Le chat-container doit décaler son contenu sous le bouton */
   .fixed-chat .chat-container {
     margin-top: 48px;
     height: calc(100% - 48px);
     border-radius: 0;
   }
 
-  /* Modals : moins de padding */
   .rematch-modal {
     min-width: auto;
     width: calc(100vw - 32px);
@@ -444,27 +447,25 @@
   }
 }
 
-/* Petit téléphone : encore plus serré */
+/* Petit téléphone (typique : 360-414px) : cellules plus petites pour tenir */
 @media (max-width: 480px) {
   .board {
     gap: 3px;
     padding: 5px;
   }
 
+  /* Sub-grid plus petit, encore en width fixe */
   .subboard {
+    width: 100px;   /* 3*32 + 4 border */
+    height: 100px;
     grid-template-columns: repeat(3, 32px);
     grid-template-rows: repeat(3, 32px);
   }
 
-  /* Cellules : remplissent exactement le slot, même règle */
   .cell {
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
+    width: 32px;
+    height: 32px;
     font-size: 18px;
-    padding: 0;
-    min-width: 0;
-    min-height: 0;
   }
 
   .subboard-winner {

@@ -21,7 +21,9 @@ export default function Navbar() {
 
             <div className="nav-right">
                 <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
-                <Link to="/lobby" className="nav-link">Lobby</Link>
+                {user && (
+                    <Link to="/lobby" className="nav-link">Lobby</Link>
+                )}
 
                 {user && (
                     <Link to="/profile" className="nav-link">Profile</Link>

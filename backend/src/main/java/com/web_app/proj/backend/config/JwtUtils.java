@@ -1,12 +1,13 @@
 package com.web_app.proj.backend.config;
 
+import java.security.Key;
+import java.util.Date;
+
+import org.springframework.stereotype.Component;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.stereotype.Component;
-
-import java.security.Key;
-import java.util.Date;
 
 @Component
 public class JwtUtils {
@@ -22,7 +23,7 @@ public class JwtUtils {
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
-                .signWith(key) // plus de warning
+                .signWith(key)
                 .compact();
     }
 
