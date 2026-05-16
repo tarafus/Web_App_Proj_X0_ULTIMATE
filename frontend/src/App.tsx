@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import Navbar from "./components/Navbar.tsx";
 import Game from "./pages/Game.tsx";
+import SoloGame from "./pages/SoloGame.tsx";
 import Home from "./pages/Home.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
@@ -16,49 +17,35 @@ import { usePersonalWebSocket } from "./hooks/usePersonalWebSocket.ts";
 import { useNotificationStore } from "./store/notificationStore.ts";
 
 function AppContent() {
-  const user      = useAuthStore((s) => s.user);
-  const navigate  = useNavigate();
-  const loadAll   = useNotificationStore((s) => s.loadAll);
-  const addNotif  = useNotificationStore((s) => s.add);
+  const user       = useAuthStore((s) => s.user);
+  const navigate   = useNavigate();
+  const loadAll    = useNotificationStore((s) => s.loadAll);
+  const addNotif   = useNotificationStore((s) => s.add);
   const clearStore = useNotificationStore((s) => s.clear);
 
-  // Charger les notifs persistées au login / vider au logout
   useEffect(() => {
-    if (user) {
-      console.log("[App] User logged in, loading notifications from DB");
-      loadAll();
-    } else {
-      clearStore();
-    }
+    if (user) loadAll();
+    else      clearStore();
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // WebSocket personnel global
   usePersonalWebSocket(user?.username ?? "", {
-    onNotification: (notif) => {
-      console.log("[App] New notification received:", notif);
-      addNotif(notif);
-    },
-    onInvitationAccepted: (gameId) => {
-      console.log("[App] Invitation accepted, navigating to", gameId);
-      navigate(`/game/${gameId}`);
-    },
-    onMatched: (gameId) => {
-      console.log("[App] Matched, navigating to", gameId);
-      navigate(`/game/${gameId}`);
-    },
+    onNotification:       (notif)  => addNotif(notif),
+    onInvitationAccepted: (gameId) => navigate(`/game/${gameId}`),
+    onMatched:            (gameId) => navigate(`/game/${gameId}`),
   });
 
   return (
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login"       element={<GuestRoute><Login /></GuestRoute>} />
-        <Route path="/register"    element={<GuestRoute><Register /></GuestRoute>} />
-        <Route path="/profile"     element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/lobby"       element={<ProtectedRoute><Lobby /></ProtectedRoute>} />
-        <Route path="/game/:id"    element={<ProtectedRoute><Game /></ProtectedRoute>} />
-        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/"                  element={<Home />} />
+        <Route path="/login"             element={<GuestRoute><Login /></GuestRoute>} />
+        <Route path="/register"          element={<GuestRoute><Register /></GuestRoute>} />
+        <Route path="/profile"           element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/lobby"             element={<ProtectedRoute><Lobby /></ProtectedRoute>} />
+        <Route path="/game/:id"          element={<ProtectedRoute><Game /></ProtectedRoute>} />
+        <Route path="/solo/:difficulty"  element={<ProtectedRoute><SoloGame /></ProtectedRoute>} />
+        <Route path="/leaderboard"       element={<Leaderboard />} />
       </Routes>
     </>
   );
