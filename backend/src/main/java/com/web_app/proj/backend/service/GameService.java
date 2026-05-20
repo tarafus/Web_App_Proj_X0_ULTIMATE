@@ -165,7 +165,7 @@ public class GameService {
         // Clôture
         game.setWinner(winner);
         game.setStatus(GameStatus.FINISHED);
-        game.setFinishedAt(LocalDateTime.now());
+        game.setFinishedAt(LocalDateTime.now()); // A CHANGER car j'ai oublie : ZonedDateTime.now(ZoneId.of("Europe/Paris")).toLocalDateTime() pour avoir la bonne heure
         game.setEloChangeP1("X".equals(winnerSymbol) ? deltaWinner : deltaLoser);
         game.setEloChangeP2("O".equals(winnerSymbol) ? deltaWinner : deltaLoser);
         gameRepository.save(game);
