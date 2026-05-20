@@ -1,4 +1,3 @@
-// src/components/GuestRoute.tsx
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore.ts";
 import type { JSX } from "react";

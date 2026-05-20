@@ -11,7 +11,6 @@ import com.web_app.proj.backend.service.MatchmakingService;
 
 @RestController
 @RequestMapping("/matchmaking")
-// @CrossOrigin(origins = "http://localhost:5173")
 public class MatchmakingController {
 
     private final MatchmakingService matchmakingService;

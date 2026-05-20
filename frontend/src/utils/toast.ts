@@ -6,7 +6,7 @@
  *   showToast("Identifiants invalides");
  *
  * Tout est en JS pur (pas de React, pas de CSS externe), donc il suffit
- * d'importer la fonction où tu en as besoin.
+ * d'importer la fonction où on en a besoin
  */
 
 let container: HTMLDivElement | null = null;

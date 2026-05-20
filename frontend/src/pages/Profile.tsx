@@ -20,7 +20,6 @@ export default function Profile() {
     const [history, setHistory] = useState<GameHistoryEntry[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // 1) Refresh user on mount (otherwise ELO can be stale)
     useEffect(() => {
         if (!token) return;
         api.get("/auth/me")

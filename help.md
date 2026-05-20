@@ -17,7 +17,7 @@ mvn spring-boot:run
 
 ## Base de données (PostresSQL)
 ### Lancer dans le terminal pour avoir accès à la BD
-docker exec -it nom_du_container psql -U postgres
+docker exec -it morpion-postgres psql -U postgres
 - \l (lister les BD)
 - \c nom_de_la_base (aller sur la BD pour pouvoir y executer des commandes SQL)
 

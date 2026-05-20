@@ -19,7 +19,7 @@ export default function NotificationBell() {
 
   useEffect(() => {
     if (open) markAllAsRead();
-  }, [open, notifications.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, notifications.length]); 
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

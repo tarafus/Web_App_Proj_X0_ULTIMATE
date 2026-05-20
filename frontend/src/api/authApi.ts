@@ -1,4 +1,3 @@
-// src/api/authApi.ts
 import { api } from "./api.ts";
 
 export interface LoginRequest {
