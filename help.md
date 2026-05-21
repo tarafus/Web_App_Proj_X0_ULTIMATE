@@ -1,5 +1,6 @@
 ## Frontend
 ### Création
+Installer si besoin : npm install
 npm create vite@latest frontend --template react
     - Choisir framework react
     - Choisir variant TypeScript
